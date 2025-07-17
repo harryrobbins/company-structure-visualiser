@@ -104,19 +104,26 @@ export const SetsView = {
     },
     async saveSet() {
       if (!this.currentSet.name) {
-        alert('Set Name is required.');
+        // A custom modal would be better than alert.
+        console.error('Set Name is required.');
         return;
       }
+
+      // FIX: Create a deep, non-reactive clone of the object to save.
+      const setToSave = JSON.parse(JSON.stringify(this.currentSet));
+
       if (this.isEditing) {
-        await db.agentSets.update(this.currentSet.id, { agentIds: this.currentSet.agentIds });
+        await db.agentSets.update(setToSave.id, { agentIds: setToSave.agentIds });
       } else {
-        await db.agentSets.add({ name: this.currentSet.name, agentIds: this.currentSet.agentIds });
+        // For adding, use the cloned object but remove the null ID.
+        delete setToSave.id;
+        await db.agentSets.add(setToSave);
       }
       await this.fetchData();
       this.closeModal();
     },
     async deleteSet(set) {
-      if (confirm(`Are you sure you want to delete the set "${set.name}"? This will not delete associated analyses.`)) {
+      if (window.confirm(`Are you sure you want to delete the set "${set.name}"? This will not delete associated analyses.`)) {
         await db.agentSets.delete(set.id);
         await this.fetchData();
       }

@@ -45,9 +45,12 @@ export const AgentsView = {
             </div>
             <div>
               <h4 class="text-md font-medium text-gray-700 mb-2">Rankings (Optional)</h4>
-              <div v-for="(ranking, index) in currentAgent.rankings" :key="index" class="flex items-center space-x-2 mb-2 bg-gray-50 p-2 rounded-md">
-                <input v-model="ranking.title" type="text" placeholder="Ranking Title (e.g., 'Clarity')" class="block w-full border border-gray-300 rounded-md shadow-sm py-1 px-2">
-                <button @click.prevent="removeRanking(index)" class="text-red-500 hover:text-red-700">&times;</button>
+              <div v-for="(ranking, index) in currentAgent.rankings" :key="index" class="bg-gray-50 p-3 rounded-md border mb-3">
+                <div class="flex items-center justify-between mb-2">
+                    <input v-model="ranking.title" type="text" placeholder="Ranking Title (e.g., 'Clarity')" class="block w-full border border-gray-300 rounded-md shadow-sm py-1 px-2">
+                    <button @click.prevent="removeRanking(index)" class="ml-2 text-red-500 hover:text-red-700 text-xl">&times;</button>
+                </div>
+                <textarea v-model="ranking.description" rows="2" placeholder="Ranking description (e.g., 'Rank from 1-10 how clear the document is.')" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-1 px-2 text-sm"></textarea>
               </div>
               <button @click.prevent="addRanking" class="text-sm text-blue-600 hover:underline">+ Add Ranking</button>
             </div>
@@ -82,7 +85,7 @@ export const AgentsView = {
       this.isLoading = false;
     },
     addRanking() {
-      this.currentAgent.rankings.push({ title: '' });
+      this.currentAgent.rankings.push({ title: '', description: '' });
     },
     removeRanking(index) {
       this.currentAgent.rankings.splice(index, 1);
@@ -102,21 +105,28 @@ export const AgentsView = {
     },
     async saveAgent() {
       if (!this.currentAgent.name || !this.currentAgent.prompt) {
-        alert('Agent Name and Prompt are required.');
+        console.error('Agent Name and Prompt are required.');
         return;
       }
-      this.currentAgent.rankings = this.currentAgent.rankings.filter(r => r.title.trim() !== '');
+
+      // FIX: Use JSON.parse(JSON.stringify(...)) to create a deep, non-reactive copy.
+      // This is the most reliable way to strip Vue's reactivity proxies before saving to IndexedDB.
+      const agentToSave = JSON.parse(JSON.stringify(this.currentAgent));
+
+      // Clean up any empty rankings from the plain object before saving.
+      agentToSave.rankings = agentToSave.rankings.filter(r => r.title && r.title.trim() !== '');
 
       if (this.isEditing) {
-        await db.agents.update(this.currentAgent.id, this.currentAgent);
+        await db.agents.update(agentToSave.id, agentToSave);
       } else {
-        await db.agents.add(this.currentAgent);
+        delete agentToSave.id;
+        await db.agents.add(agentToSave);
       }
       await this.fetchAgents();
       this.closeModal();
     },
     async deleteAgent(agent) {
-      if (confirm(`Are you sure you want to delete the agent "${agent.name}"?`)) {
+      if (window.confirm(`Are you sure you want to delete the agent "${agent.name}"?`)) {
         await db.agents.delete(agent.id);
         await this.fetchAgents();
       }

@@ -4,10 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AIGENT</title>
-
   <!-- Tailwind CSS from CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-
 </head>
 <body class="bg-gray-100 font-sans">
   <!-- Root element for the Vue application -->
@@ -18,21 +16,29 @@
   </div>
 
   <!--
-    JavaScript Libraries
-    These are loaded first. Vue must be available before our app scripts run.
+    JavaScript Libraries (Classic Scripts)
+    These are loaded sequentially at the end of the body to ensure the DOM is ready.
+    They must come before our application modules.
+    1. Vue.js: Creates the global 'Vue' object.
+    2. Dexie.js: Creates the global 'Dexie' object.
+    3. db.js: Uses Dexie to create our global 'db' instance.
+    4. Other utility libraries.
   -->
   <script src="[[ url_for('static', path='/libs/vue.global.js') ]]"></script>
+  <script>window.Vue = VueGlobal;</script>
   <script src="[[ url_for('static', path='/libs/dexie.min.js') ]]"></script>
+  <script src="[[ url_for('static', path='/js/db.js') ]]"></script> <!-- CRITICAL: Added the missing DB script -->
   <script src="[[ url_for('static', path='/libs/xlsx.full.min.js') ]]"></script>
-  <script src="[[ url_for('static', path='/libs/mammoth.browser.min.js') ]]"></script>
   <script src="[[ url_for('static', path='/libs/showdown.min.js') ]]"></script>
+  <!-- Note: pdf.js is loaded dynamically by docs-view.js when needed -->
+
 
   <!--
-    Application Scripts
-    Loaded as modules to allow for import/export syntax.
+    Application Scripts (ES Modules)
+    These are loaded last. main.js is the entry point and will import other components.
     The browser will handle the dependency graph.
-    main.js is the final entry point that starts the app.
   -->
+  <script type="module" src="[[ url_for('static', path='/libs/mammoth.browser.min.js') ]]"></script>
   <script type="module" src="[[ url_for('static', path='/js/main.js') ]]"></script>
 
 </body>

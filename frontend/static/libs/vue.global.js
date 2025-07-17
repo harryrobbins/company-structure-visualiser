@@ -3,7 +3,7 @@
 * (c) 2018-present Yuxi (Evan) You and Vue contributors
 * @license MIT
 **/
-var Vue = (function (exports) {
+var VueGlobal = (function (exports) {
   'use strict';
 
   /*! #__NO_SIDE_EFFECTS__ */
