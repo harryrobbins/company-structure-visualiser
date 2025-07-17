@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  aigent:
+    build: .
+    image: aigent:latest
+    container_name: aigent_app
+    environment:
+      - OPENAI_API_BASE=${OPENAI_API_BASE}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ROOT_URL=${ROOT_URL:-}
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./frontend/static:/app/frontend/static
+      - ./backend:/app/backend
+    command: uvicorn backend.app:app --host 0.0.0.0 --port 8002

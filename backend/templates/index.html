@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIGENT</title>
+
+  <!-- Tailwind CSS from CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+<body class="bg-gray-100 font-sans">
+  <!-- Root element for the Vue application -->
+  <div id="app">
+    <div class="flex items-center justify-center min-h-screen">
+        <p class="text-gray-500">Loading AIGENT...</p>
+    </div>
+  </div>
+
+  <!--
+    JavaScript Libraries
+    These are loaded first. Vue must be available before our app scripts run.
+  -->
+  <script src="[[ url_for('static', path='/libs/vue.global.js') ]]"></script>
+  <script src="[[ url_for('static', path='/libs/dexie.min.js') ]]"></script>
+  <script src="[[ url_for('static', path='/libs/xlsx.full.min.js') ]]"></script>
+  <script src="[[ url_for('static', path='/libs/mammoth.browser.min.js') ]]"></script>
+  <script src="[[ url_for('static', path='/libs/showdown.min.js') ]]"></script>
+
+  <!--
+    Application Scripts
+    Loaded as modules to allow for import/export syntax.
+    The browser will handle the dependency graph.
+    main.js is the final entry point that starts the app.
+  -->
+  <script type="module" src="[[ url_for('static', path='/js/main.js') ]]"></script>
+
+</body>
+</html>

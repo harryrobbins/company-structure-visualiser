@@ -1,0 +1,1 @@
+repomix -i frontend/static/libs/*.js,frontend/static/libs/*.mjs,frontend/static/css/*.js,docker-compose.yml -o repomix.txt
