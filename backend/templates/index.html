@@ -4,41 +4,29 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AIGENT</title>
-  <!-- Tailwind CSS from CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 font-sans">
-  <!-- Root element for the Vue application -->
   <div id="app">
     <div class="flex items-center justify-center min-h-screen">
         <p class="text-gray-500">Loading AIGENT...</p>
     </div>
   </div>
 
-  <!--
-    JavaScript Libraries (Classic Scripts)
-    These are loaded sequentially at the end of the body to ensure the DOM is ready.
-    They must come before our application modules.
-    1. Vue.js: Creates the global 'Vue' object.
-    2. Dexie.js: Creates the global 'Dexie' object.
-    3. db.js: Uses Dexie to create our global 'db' instance.
-    4. Other utility libraries.
-  -->
+  <!-- JavaScript Libraries (Classic Scripts) -->
   <script src="[[ url_for('static', path='/libs/vue.global.js') ]]"></script>
-  <script>window.Vue = VueGlobal;</script>
+  <script>window.Vue = window.VueGlobal || window.Vue;</script>
   <script src="[[ url_for('static', path='/libs/dexie.min.js') ]]"></script>
-  <script src="[[ url_for('static', path='/js/db.js') ]]"></script> <!-- CRITICAL: Added the missing DB script -->
+  <script src="[[ url_for('static', path='/js/db.js') ]]"></script>
   <script src="[[ url_for('static', path='/libs/xlsx.full.min.js') ]]"></script>
   <script src="[[ url_for('static', path='/libs/showdown.min.js') ]]"></script>
-  <!-- Note: pdf.js is loaded dynamically by docs-view.js when needed -->
+  <!-- FIX: Add the pdf.js library. This makes window.pdfjsLib available. -->
+  <script type="module" src="[[ url_for('static', path='/libs/pdf.mjs') ]]"></script>
+  <script type="module" src="[[ url_for('static', path='/libs/pdf.worker.mjs') ]]"></script>
 
 
-  <!--
-    Application Scripts (ES Modules)
-    These are loaded last. main.js is the entry point and will import other components.
-    The browser will handle the dependency graph.
-  -->
-  <script type="module" src="[[ url_for('static', path='/libs/mammoth.browser.min.js') ]]"></script>
+  <!-- Application Scripts (ES Modules) -->
+  <script type="module"  src="[[ url_for('static', path='/libs/mammoth.browser.min.js') ]]"></script>
   <script type="module" src="[[ url_for('static', path='/js/main.js') ]]"></script>
 
 </body>

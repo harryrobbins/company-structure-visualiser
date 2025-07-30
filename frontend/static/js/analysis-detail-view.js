@@ -1,4 +1,5 @@
 // frontend/static/js/analysis-detail-view.js
+import { logger } from './logger.js';
 
 export const AnalysisDetailView = {
   props: ['runId'],
@@ -70,6 +71,7 @@ export const AnalysisDetailView = {
     };
   },
   async created() {
+    logger.log('AnalysisDetailView created for runId:', this.runId);
     await this.fetchData();
   },
   methods: {
@@ -93,18 +95,27 @@ export const AnalysisDetailView = {
         }
     },
     async startAnalysis() {
+        logger.info(`Starting analysis for run ID: ${this.runId}`);
         this.isAnalyzing = true;
         const runId = parseInt(this.runId, 10);
         const agents = await db.agents.where('id').anyOf(this.agentSet.agentIds).toArray();
         const documents = await db.documents.where({ analysisRunId: runId }).toArray();
 
+        logger.log('Analysis details:', {
+            runId: runId,
+            agentSet: this.agentSet.name,
+            agentsToRun: agents.map(a => a.name),
+            documentCount: documents.length
+        });
+
         if (documents.length === 0) {
+            logger.warn('Analysis stopped: No documents uploaded.');
             alert('Please upload at least one document before running the analysis.');
             this.isAnalyzing = false;
             return;
         }
 
-        // Clear previous results for this run
+        logger.log('Clearing previous results for this run.');
         await db.results.where({ analysisRunId: runId }).delete();
         this.activeTab = 'results';
 
@@ -116,29 +127,38 @@ export const AnalysisDetailView = {
                 context: this.run.context
             };
 
+            logger.log(`Preparing to call /api/analyze for agent: ${agent.name}`, { requestBody });
+
             return fetch('/api/analyze', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestBody)
             })
             .then(response => {
+                logger.log(`Received response from /api/analyze for agent ${agent.name}. Status: ${response.status}`);
                 if (!response.ok) {
-                    return response.json().then(err => { throw new Error(err.detail || 'Analysis failed') });
+                    return response.json().then(err => {
+                        logger.error(`Analysis failed for agent ${agent.name}.`, err);
+                        throw new Error(err.detail || 'Analysis failed')
+                    });
                 }
                 return response.json();
             })
             .then(result => {
-                return db.results.add({
+                logger.info(`Successfully received and parsed result for agent ${agent.name}`, { result });
+                const resultToSave = {
                     analysisRunId: runId,
                     agentId: agent.id,
                     agentName: result.name,
                     report: result.report,
                     rankings: result.rankings,
                     createdAt: new Date()
-                });
+                };
+                logger.log(`Saving result to database for agent ${agent.name}`, { resultToSave });
+                return db.results.add(resultToSave);
             })
             .catch(error => {
-                console.error(`Error analyzing with agent ${agent.name}:`, error);
+                logger.error(`Error in analysis chain for agent ${agent.name}:`, error);
                 // Store an error result in the DB
                 return db.results.add({
                     analysisRunId: runId,
@@ -152,6 +172,7 @@ export const AnalysisDetailView = {
         });
 
         await Promise.all(analysisPromises);
+        logger.info('All analysis promises have completed.');
         this.isAnalyzing = false;
     },
     navigate(view, params) {

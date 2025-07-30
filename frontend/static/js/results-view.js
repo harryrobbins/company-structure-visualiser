@@ -1,4 +1,5 @@
 // frontend/static/js/results-view.js
+import { logger } from './logger.js';
 
 export const ResultsView = {
   props: ['analysisRunId'],
@@ -51,9 +52,11 @@ export const ResultsView = {
     };
   },
   created() {
+    logger.log('ResultsView created for analysisRunId:', this.analysisRunId);
     this.setupLiveListener();
   },
   unmounted() {
+    logger.log('ResultsView unmounted, unsubscribing from live query.');
     // Clean up the live query when the component is destroyed
     if (this.liveQuery) {
         this.liveQuery.unsubscribe();
@@ -68,21 +71,29 @@ export const ResultsView = {
     },
     setupLiveListener() {
       if (!this.analysisRunId) {
+        logger.warn('ResultsView: No analysisRunId provided, cannot set up listener.');
         this.isLoading = false;
         return;
       }
       this.isLoading = true;
+
+      // BUG FIX: The analysisRunId prop is a string, but it's stored as a number in the database.
+      // We must parse it to an integer to ensure the 'where' clause finds a match.
+      const runId = parseInt(this.analysisRunId, 10);
+      logger.log(`Setting up live listener for runId: ${runId}`);
+
       this.liveQuery = Dexie.liveQuery(() =>
-        db.results.where({ analysisRunId: this.analysisRunId }).sortBy('createdAt')
+        db.results.where({ analysisRunId: runId }).sortBy('createdAt')
       );
 
       this.liveQuery.subscribe({
         next: (updatedResults) => {
+          logger.info(`Live query updated for runId ${runId}. Found ${updatedResults.length} results.`, { updatedResults });
           this.results = updatedResults;
           this.isLoading = false;
         },
         error: (error) => {
-          console.error("Live query failed:", error);
+          logger.error(`Live query failed for runId ${runId}:`, error);
           this.isLoading = false;
         }
       });

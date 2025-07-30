@@ -1,5 +1,7 @@
 // frontend/static/js/docs-view.js
 
+// FIX: Removed the import statement. Mammoth.js is now loaded as a global script from index.html.
+
 export const DocsView = {
   props: ['analysisRunId'],
   template: `
@@ -42,12 +44,16 @@ export const DocsView = {
     };
   },
   async created() {
+    // Configure the path to the pdf.js worker script.
+    if (window.pdfjsLib) {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = `/static/libs/pdf.worker.js`;
+    }
     await this.fetchDocuments();
   },
   methods: {
     async fetchDocuments() {
       if (!this.analysisRunId) return;
-      this.documents = await db.documents.where({ analysisRunId: this.analysisRunId }).toArray();
+      this.documents = await db.documents.where({ analysisRunId: parseInt(this.analysisRunId, 10) }).toArray();
     },
     handleDrop(event) {
       this.isDragOver = false;
@@ -65,7 +71,7 @@ export const DocsView = {
         try {
           const { text, filetype } = await this.extractText(file);
           await db.documents.add({
-            analysisRunId: this.analysisRunId,
+            analysisRunId: parseInt(this.analysisRunId, 10),
             filename: file.name,
             text: text,
             filetype: filetype
@@ -122,6 +128,9 @@ export const DocsView = {
         const reader = new FileReader();
         reader.onload = async (event) => {
           try {
+            if (!window.pdfjsLib) {
+                return reject(new Error("pdf.js library is not loaded."));
+            }
             const pdf = await window.pdfjsLib.getDocument({data: event.target.result}).promise;
             let text = '';
             for (let i = 1; i <= pdf.numPages; i++) {
@@ -142,6 +151,7 @@ export const DocsView = {
         const reader = new FileReader();
         reader.onload = async (event) => {
           try {
+            // The global 'mammoth' object is now available.
             const result = await mammoth.extractRawText({ arrayBuffer: event.target.result });
             resolve(result.value);
           } catch (error) {

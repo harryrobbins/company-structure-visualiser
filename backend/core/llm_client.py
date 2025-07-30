@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 from typing import List, Dict, Any, Optional
 
 # FIX: Import the new client classes from the openai library
@@ -96,7 +97,7 @@ class LLMClient:
             # FIX: Use the 'tools' API for reliable structured output based on the LLMOutput Pydantic model.
             # This is the modern and recommended way to get structured JSON.
             response = await self.client.chat.completions.create(
-                model="gpt-4o",  # Or another suitable model
+                model=os.getenv("LLM_MODEL"),  # Or another suitable model
                 messages=messages,
                 tools=[
                     {
