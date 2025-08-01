@@ -7,8 +7,8 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from backend.api.analyze import router as analyze_router
-from backend.core.config import settings
+from api.analyze import router as analyze_router
+from core.config import settings
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -45,7 +45,7 @@ import mimetypes
 mimetypes.add_type('application/javascript', '.mjs', True)
 app.mount(
     "/static",
-    CustomStaticFiles(directory="frontend/static"),
+    CustomStaticFiles(directory="static"),
     name="static"
 )
 logger.info("Mounted static files directory at '/static'.")
@@ -53,7 +53,7 @@ logger.info("Mounted static files directory at '/static'.")
 
 # Configure Jinja2 for templating.
 # The directory points to where the HTML templates are stored.
-templates = Jinja2Templates(directory="backend/templates")
+templates = Jinja2Templates(directory="templates")
 
 # IMPORTANT: Change Jinja2 delimiters to avoid conflicts with Vue.js syntax.
 # Vue.js uses {{ }} by default, so we'll use [[ ]] for Jinja2.

@@ -10,7 +10,7 @@ from openai import AsyncOpenAI, OpenAIError
 from pydantic import BaseModel, Field, ValidationError
 
 # Correctly import the settings instance from its absolute path
-from backend.core.config import settings
+from core.config import settings
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

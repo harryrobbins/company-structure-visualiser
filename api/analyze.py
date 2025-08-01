@@ -7,8 +7,8 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 # Corrected: Use absolute imports from the project root ('backend.')
-from backend.core.llm_client import LLMClient, AgentResult
-from backend.core.config import settings
+from core.llm_client import LLMClient, AgentResult
+from core.config import settings
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
