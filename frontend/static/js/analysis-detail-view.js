@@ -129,13 +129,17 @@ export const AnalysisDetailView = {
 
             logger.log(`Preparing to call /api/analyze for agent: ${agent.name}`, { requestBody });
 
-            return fetch('/api/analyze', {
+            // MODIFICATION: Prepend the global `window.ROOT_PATH` to the API endpoint.
+            // This ensures the fetch request goes to the correct URL, e.g., /my-app/api/analyze.
+            const apiUrl = window.ROOT_PATH + '/api/analyze';
+
+            return fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestBody)
             })
             .then(response => {
-                logger.log(`Received response from /api/analyze for agent ${agent.name}. Status: ${response.status}`);
+                logger.log(`Received response from ${apiUrl} for agent ${agent.name}. Status: ${response.status}`);
                 if (!response.ok) {
                     return response.json().then(err => {
                         logger.error(`Analysis failed for agent ${agent.name}.`, err);

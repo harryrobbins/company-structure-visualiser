@@ -17,13 +17,18 @@ logger = logging.getLogger(__name__)
 # --- FastAPI Application Setup ---
 
 # Initialize the FastAPI application
+# MODIFICATION: Added the `root_path` setting.
+# This tells FastAPI that the application might be served under a sub-path
+# (e.g., http://yourserver.com/my-app). All generated URLs will correctly
+# include this prefix.
 app = FastAPI(
     title="AIGENT",
     description="A self-contained web application for running AI-powered agents.",
     version="1.0.0",
+    root_path=settings.ROOT_URL
 )
 
-logger.info("FastAPI application initialized.")
+logger.info(f"FastAPI application initialized with root_path: '{settings.ROOT_URL}'")
 
 # --- Static Files and Templates ---
 
@@ -67,10 +72,10 @@ logger.info("Included API router from 'analyze' module.")
 
 # --- Core Application Routes ---
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/{full_path:path}", response_class=HTMLResponse)
 async def read_index(request: Request) -> HTMLResponse:
     """
-    Serves the main index.html file.
+    Serves the main index.html file for any non-API path.
 
     This is the entry point for the Vue.js single-page application.
     It passes the ROOT_URL from settings to the template, which allows
@@ -101,4 +106,3 @@ async def health_check() -> dict:
     monitoring services to verify that the application is running.
     """
     return {"status": "ok"}
-

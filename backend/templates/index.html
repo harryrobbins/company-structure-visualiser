@@ -4,7 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AIGENT</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="[[ url_for('static', path='/libs/tailwind.js') ]]"></script>
+
+  <!--
+    MODIFICATION: Define a global JavaScript variable for the application's root path.
+    The `root_url` value is passed from the FastAPI backend. This allows all
+    frontend JavaScript files to build correct API paths, regardless of whether
+    the app is running at the server root or in a subdirectory.
+  -->
+  <script>
+    window.ROOT_PATH = "[[ root_url ]]";
+  </script>
+
 </head>
 <body class="bg-gray-100 font-sans">
   <div id="app">

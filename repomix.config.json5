@@ -1,0 +1,18 @@
+{
+  "input": {
+    "maxFileSize": 50000000
+  },
+  "output": {
+    "filePath": "repomix.txt",
+  },
+  "include": ["**/*"],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    // Patterns can also be specified in .repomixignore
+    "customPatterns": [
+      "frontend/static/libs"
+    ],
+  },
+
+}
