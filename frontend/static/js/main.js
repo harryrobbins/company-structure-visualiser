@@ -9,6 +9,9 @@ import { AgentsView } from './agents-view.js';
 import { SetsView } from './sets-view.js';
 import { AnalysisRunsView } from './analysis-runs-view.js';
 import { AnalysisDetailView } from './analysis-detail-view.js';
+// MODIFICATION: Import the new SettingsView
+import { SettingsView } from './settings-view.js';
+
 
 // --- Import Component Building Blocks ---
 import { LoadingSpinner, ModalComponent } from './components.js';
@@ -80,7 +83,11 @@ const App = {
         } else if (path === 'analysis-detail-view' && paramParts.length) {
             view = 'analysis-detail-view';
             params.runId = paramParts[0];
+        } else if (path === 'settings-view') {
+            // MODIFICATION: Add routing for the new settings view
+            view = 'settings-view';
         }
+
 
         this.currentView = view;
         this.viewParams = params;
@@ -118,6 +125,8 @@ const App = {
                    <button @click="navigate('home-view')" :class="{'text-blue-600 border-b-2 border-blue-600': isActive('home')}" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium">Home</button>
                     <button @click="navigate('agents-view')" :class="{'text-blue-600 border-b-2 border-blue-600': isActive('agents')}" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium">Agents</button>
                     <button @click="navigate('sets-view')" :class="{'text-blue-600 border-b-2 border-blue-600': isActive('sets')}" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium">Agent Sets</button>
+                    <!-- MODIFICATION: Add a navigation button for the Settings view -->
+                    <button @click="navigate('settings-view')" :class="{'text-blue-600 border-b-2 border-blue-600': isActive('settings')}" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium">Settings</button>
                  </div>
             </div>
             <!-- Logging Toggle Button -->
@@ -150,5 +159,8 @@ app.component('analysis-runs-view', AnalysisRunsView);
 app.component('analysis-detail-view', AnalysisDetailView);
 app.component('docs-view', DocsView);
 app.component('results-view', ResultsView);
+// MODIFICATION: Register the new SettingsView component
+app.component('settings-view', SettingsView);
+
 
 app.mount('#app');

@@ -5,9 +5,15 @@ export const AgentsView = {
     <div>
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-3xl font-bold text-gray-800">Agents</h2>
-        <button @click="openCreateModal" class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition-colors">
-          + New Agent
-        </button>
+        <div>
+          <!-- MODIFICATION: Button to delete selected agents. Disabled if none are selected. -->
+          <button @click="deleteSelected" :disabled="selectedAgentIds.length === 0" class="px-4 py-2 bg-red-600 text-white rounded-lg shadow hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed mr-4">
+              Delete Selected ({{ selectedAgentIds.length }})
+          </button>
+          <button @click="openCreateModal" class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition-colors">
+            + New Agent
+          </button>
+        </div>
       </div>
 
       <div v-if="isLoading" class="text-center text-gray-500">
@@ -17,17 +23,30 @@ export const AgentsView = {
       <div v-else-if="agents.length === 0" class="text-center text-gray-500 bg-white p-8 rounded-lg shadow">
         <p>No agents found. Click "+ New Agent" to create one.</p>
       </div>
-      <div v-else class="space-y-4">
-        <div v-for="agent in agents" :key="agent.id" class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-          <div class="flex justify-between items-start">
-            <div>
-              <h3 class="text-xl font-semibold text-gray-900">{{ agent.name }}</h3>
+      <!-- MODIFICATION: The agent list is now an expandable accordion -->
+      <div v-else class="space-y-2">
+        <div v-for="agent in agents" :key="agent.id" class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div class="flex items-start space-x-4 p-4">
+            <input type="checkbox" :value="agent.id" v-model="selectedAgentIds" class="h-5 w-5 mt-1 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+            <div class="flex-1 cursor-pointer" @click="toggleExpand(agent.id)">
+              <div class="flex justify-between items-start">
+                <h3 class="text-xl font-semibold text-gray-900">{{ agent.name }}</h3>
+                <div class="flex items-center space-x-2">
+                  <button @click.stop="openEditModal(agent)" class="text-sm text-blue-500 hover:text-blue-700 font-medium">Edit</button>
+                  <button class="text-gray-400">
+                    <svg :class="{'rotate-180': isExpanded(agent.id)}" class="h-5 w-5 transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
               <p class="text-sm text-gray-500 mt-1 truncate">{{ agent.prompt }}</p>
             </div>
-            <div class="flex space-x-2">
-              <button @click="openEditModal(agent)" class="text-blue-500 hover:text-blue-700">Edit</button>
-              <button @click="deleteAgent(agent)" class="text-red-500 hover:text-red-700">Delete</button>
-            </div>
+          </div>
+          <!-- MODIFICATION: This section is shown only when the agent is expanded -->
+          <div v-if="isExpanded(agent.id)" class="px-4 pb-4 pl-12">
+              <h4 class="font-semibold text-gray-700">Full Prompt:</h4>
+              <div class="mt-2 prose prose-sm max-w-none text-gray-600 whitespace-pre-wrap bg-gray-50 p-3 rounded-md border">{{ agent.prompt }}</div>
           </div>
         </div>
       </div>
@@ -70,6 +89,9 @@ export const AgentsView = {
       isModalOpen: false,
       isEditing: false,
       currentAgent: this.getEmptyAgent(),
+      // MODIFICATION: Added state for selection and expansion
+      selectedAgentIds: [],
+      expandedAgentIds: new Set(),
     };
   },
   async created() {
@@ -77,7 +99,7 @@ export const AgentsView = {
   },
   methods: {
     getEmptyAgent() {
-      return { id: null, name: '', prompt: '', rankings: [] };
+      return { id: crypto.randomUUID(), name: '', prompt: '', rankings: [] };
     },
     async fetchAgents() {
       this.isLoading = true;
@@ -109,26 +131,34 @@ export const AgentsView = {
         return;
       }
 
-      // FIX: Use JSON.parse(JSON.stringify(...)) to create a deep, non-reactive copy.
-      // This is the most reliable way to strip Vue's reactivity proxies before saving to IndexedDB.
       const agentToSave = JSON.parse(JSON.stringify(this.currentAgent));
-
-      // Clean up any empty rankings from the plain object before saving.
       agentToSave.rankings = agentToSave.rankings.filter(r => r.title && r.title.trim() !== '');
 
-      if (this.isEditing) {
-        await db.agents.update(agentToSave.id, agentToSave);
-      } else {
-        delete agentToSave.id;
-        await db.agents.add(agentToSave);
-      }
+      await db.agents.put(agentToSave);
+
       await this.fetchAgents();
       this.closeModal();
     },
-    async deleteAgent(agent) {
-      if (window.confirm(`Are you sure you want to delete the agent "${agent.name}"?`)) {
-        await db.agents.delete(agent.id);
-        await this.fetchAgents();
+    // MODIFICATION: New methods for expand/collapse functionality
+    toggleExpand(agentId) {
+        if (this.expandedAgentIds.has(agentId)) {
+            this.expandedAgentIds.delete(agentId);
+        } else {
+            this.expandedAgentIds.add(agentId);
+        }
+    },
+    isExpanded(agentId) {
+        return this.expandedAgentIds.has(agentId);
+    },
+    // MODIFICATION: Replaced individual delete with bulk deletion
+    async deleteSelected() {
+      const count = this.selectedAgentIds.length;
+      if (count === 0) return;
+
+      if (window.confirm(`Are you sure you want to delete these ${count} agent(s)? This action cannot be undone.`)) {
+        await db.agents.bulkDelete(this.selectedAgentIds);
+        this.selectedAgentIds = []; // Clear the selection
+        await this.fetchAgents(); // Refresh the list from the database
       }
     }
   }

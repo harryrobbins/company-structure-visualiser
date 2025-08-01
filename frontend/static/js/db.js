@@ -46,6 +46,7 @@
 // Initialize Dexie and define the database schema.
 const db = new Dexie('AIGENT_DB');
 
+// This was the original schema definition.
 db.version(1).stores({
   agents: '++id, &name',
   agentSets: '++id, &name',
@@ -54,8 +55,21 @@ db.version(1).stores({
   results: '++id, analysisRunId, agentId, createdAt'
 });
 
-// Open the database. This is an asynchronous operation.
-// We can attach a .catch() to handle any errors during initialization.
+// MODIFICATION: A new database version is defined to handle the schema change.
+// The 'agents' table's primary key 'id' is changed from an auto-incrementing
+// number ('++id') to a UUID string ('id'). This is the key change that makes
+// agents portable between different browsers or computers.
+db.version(2).stores({
+  agents: 'id, &name', // 'id' is now the primary key and is not auto-incrementing.
+  agentSets: '++id, &name',
+  analysisRuns: '++id, agentSetId, createdAt',
+  documents: '++id, analysisRunId',
+  // The 'agentId' in the results table will now be a UUID string. The index is kept for performance.
+  results: '++id, analysisRunId, agentId, createdAt'
+});
+
+
+// Open the database. Dexie will handle the upgrade from version 1 to 2 automatically.
 db.open().catch(function (e) {
   console.error("Open failed: " + e.stack);
 });
