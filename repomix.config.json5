@@ -11,7 +11,7 @@
     "useDefaultPatterns": true,
     // Patterns can also be specified in .repomixignore
     "customPatterns": [
-      "frontend/static/libs"
+      "static/libs"
     ],
   },
 
