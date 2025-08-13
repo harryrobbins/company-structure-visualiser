@@ -1,43 +1,45 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AIGENT</title>
-  <script src="[[ url_for('static', path='/libs/tailwind.js') ]]"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PDF Text Extractor</title>
 
-  <!--
-    MODIFICATION: Define a global JavaScript variable for the application's root path.
-    The `root_url` value is passed from the FastAPI backend. This allows all
-    frontend JavaScript files to build correct API paths, regardless of whether
-    the app is running at the server root or in a subdirectory.
-  -->
+  <!-- Tailwind (local) -->
+
+  <script src="[[ url_for('static', path='/libs/tailwind.js') ]]" defer></script>
+
+  <!-- Expose the backend root path to JS (FastAPI passes [[ root_url ]]) -->
+
   <script>
-    window.ROOT_PATH = "[[ root_url ]]";
+    window.ROOT_PATH = "[[ root_url ]]" || "";
+  </script>
+
+  <!-- Import map: resolve bare specifiers to local ESM files (no CDN, no bundler) -->
+
+  <script type="importmap">
+  {
+    "imports": {
+      "vue": "[[ url_for('static', path='/libs/vue.esm-browser.js') ]]",
+      "dexie": "[[ url_for('static', path='/libs/dexie.mjs') ]]",
+      "pdfjs": "[[ url_for('static', path='/libs/pdf.mjs') ]]",
+      "logging": "[[ url_for('static', path='/js/logging.js') ]]"
+    }
+  }
   </script>
 
 </head>
 <body class="bg-gray-100 font-sans">
+  <!-- Vue mounts here -->
   <div id="app">
     <div class="flex items-center justify-center min-h-screen">
-        <p class="text-gray-500">Loading AIGENT...</p>
+      <p class="text-gray-500">Loading Application...</p>
     </div>
   </div>
 
-  <!-- JavaScript Libraries (Classic Scripts) -->
-  <script src="[[ url_for('static', path='/libs/vue.global.js') ]]"></script>
-  <script>window.Vue = window.VueGlobal || window.Vue;</script>
-  <script src="[[ url_for('static', path='/libs/dexie.min.js') ]]"></script>
-  <script src="[[ url_for('static', path='/js/db.js') ]]"></script>
-  <script src="[[ url_for('static', path='/libs/xlsx.full.min.js') ]]"></script>
-  <script src="[[ url_for('static', path='/libs/showdown.min.js') ]]"></script>
-  <!-- FIX: Add the pdf.js library. This makes window.pdfjsLib available. -->
-  <script type="module" src="[[ url_for('static', path='/libs/pdf.mjs') ]]"></script>
-  <script type="module" src="[[ url_for('static', path='/libs/pdf.worker.mjs') ]]"></script>
+  <!-- App entry (ES module) -->
 
-
-  <!-- Application Scripts (ES Modules) -->
-  <script type="module"  src="[[ url_for('static', path='/libs/mammoth.browser.min.js') ]]"></script>
   <script type="module" src="[[ url_for('static', path='/js/main.js') ]]"></script>
 
 </body>

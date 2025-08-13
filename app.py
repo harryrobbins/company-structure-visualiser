@@ -1,36 +1,49 @@
-# backend/app.py
+# app.py
 
-import os
 import logging
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from api.analyze import router as analyze_router
-from core.config import settings
+# Imports are now simpler, pointing directly to the unified 'api' module.
+from api.router import router as api_router
+from api.config import settings
+import logging
+from api.logging import configure_logging, get_logger
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from starlette.middleware import Middleware
+from api.middleware import RequestIdMiddleware
 
-# --- FastAPI Application Setup ---
+configure_logging()
+logger = get_logger(__name__)
 
-# Initialize the FastAPI application
-# MODIFICATION: Added the `root_path` setting.
-# This tells FastAPI that the application might be served under a sub-path
-# (e.g., http://yourserver.com/my-app). All generated URLs will correctly
-# include this prefix.
 app = FastAPI(
-    title="AIGENT",
-    description="A self-contained web application for running AI-powered agents.",
+    title="PDF Text Extractor",
+    description="An application to convert PDF pages to images and extract text using AI.",
     version="1.0.0",
-    root_path=settings.ROOT_URL
+    root_path=settings.ROOT_PATH,
+    middleware=[
+        Middleware(RequestIdMiddleware),
+    ]
 )
 
-logger.info(f"FastAPI application initialized with root_path: '{settings.ROOT_URL}'")
+# Add the middleware **before** mounting routes
+logger.info(f"FastAPI application initialized with root_path: '{settings.ROOT_PATH}'")
 
-# --- Static Files and Templates ---
+# --- Static Files and Templates Setup ---
+app.mount("/static", StaticFiles(directory="static"), name="static")
+logger.info("Mounted static files directory at '/static'.")
+
+templates = Jinja2Templates(directory="templates")
+templates.env.variable_start_string = "[["
+templates.env.variable_end_string = "]]"
+logger.info("Jinja2 templates configured with custom delimiters [[ ... ]].")
+
+
+# --- API Router Integration ---
+app.include_router(api_router)
+logger.info("Included API router from 'api' module.")
 
 # Mount the 'static' directory to serve frontend assets like JS, CSS, and libraries.
 # The path is relative to the project root where the app is run.
@@ -50,59 +63,24 @@ app.mount(
 )
 logger.info("Mounted static files directory at '/static'.")
 
-
-# Configure Jinja2 for templating.
-# The directory points to where the HTML templates are stored.
-templates = Jinja2Templates(directory="templates")
-
-# IMPORTANT: Change Jinja2 delimiters to avoid conflicts with Vue.js syntax.
-# Vue.js uses {{ }} by default, so we'll use [[ ]] for Jinja2.
-templates.env.variable_start_string = "[["
-templates.env.variable_end_string = "]]"
-logger.info("Jinja2 templates configured with custom delimiters [[ ... ]].")
-
-
-# --- API Routers ---
-
-# Include the router from the 'analyze' API module.
-# All routes defined in that router will be added to the application.
-app.include_router(analyze_router)
-logger.info("Included API router from 'analyze' module.")
-
-
-# --- Core Application Routes ---
-
+# --- Core Application Route ---
 @app.get("/{full_path:path}", response_class=HTMLResponse)
-async def read_index(request: Request) -> HTMLResponse:
+async def read_index(request: Request):
     """
     Serves the main index.html file for any non-API path.
-
-    This is the entry point for the Vue.js single-page application.
-    It passes the ROOT_URL from settings to the template, which allows
-    the frontend to correctly construct URLs for static assets and API calls,
-    even if the app is hosted under a sub-path.
-
-    Args:
-        request (Request): The incoming request object from FastAPI.
-
-    Returns:
-        HTMLResponse: The rendered index.html template.
     """
-    logger.info("Serving index.html.")
+    logger.info(f"Serving index.html for path: '{request.url.path}'")
     return templates.TemplateResponse(
         "index.html",
         {
             "request": request,
-            "root_url": settings.ROOT_URL
+            "root_url": settings.ROOT_PATH
         }
     )
 
 @app.get("/health")
-async def health_check() -> dict:
+async def health_check():
     """
-    A simple health check endpoint.
-
-    Returns a 200 OK response with a status message, which can be used by
-    monitoring services to verify that the application is running.
+    A simple health check endpoint for monitoring.
     """
     return {"status": "ok"}
