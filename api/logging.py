@@ -1,74 +1,81 @@
-# api/logging.py
+# api/logging.py (Updated)
+# Centralized, structured JSON logging configuration.
+
 from __future__ import annotations
 import json
 import logging
-import os
 import sys
-import time
-import uuid
-from typing import Any, Dict
 from contextvars import ContextVar
 
-# Correlation ID stored per-request
+# Context variable to hold the request ID for correlation.
 _request_id_ctx: ContextVar[str | None] = ContextVar("request_id", default=None)
 
+
 def get_request_id() -> str | None:
+    """Retrieves the current request ID from the context."""
     return _request_id_ctx.get()
 
+
 def set_request_id(value: str | None) -> None:
+    """Sets the request ID in the context for the current request."""
     _request_id_ctx.set(value)
 
+
 class JsonFormatter(logging.Formatter):
-    """A minimal JSON formatter for logs."""
+    """
+    Formats log records as a single line of JSON.
+    This is ideal for structured logging and easy parsing by log management systems.
+    """
+
     def format(self, record: logging.LogRecord) -> str:
-        payload: Dict[str, Any] = {
+        # Base payload for every log entry.
+        payload = {
             "ts": self.formatTime(record, datefmt="%Y-%m-%dT%H:%M:%S%z"),
             "level": record.levelname,
             "logger": record.name,
             "msg": record.getMessage(),
         }
-        rid = get_request_id()
-        if rid:
+        # Add request ID if available in the context.
+        if rid := get_request_id():
             payload["request_id"] = rid
-        # Include extras if present
-        for key, value in record.__dict__.items():
-            if key not in ("args", "asctime", "created", "exc_info", "exc_text", "filename",
-                           "funcName", "levelname", "levelno", "lineno", "module", "msecs",
-                           "msg", "name", "pathname", "process", "processName", "relativeCreated",
-                           "stack_info", "thread", "threadName"):
-                payload[key] = value
+
+        # Add any extra fields passed to the logger.
         if record.exc_info:
             payload["exc_info"] = self.formatException(record.exc_info)
+
+        # Merge extra dictionary if it exists
+        if hasattr(record, 'extra_dict'):
+            payload.update(record.extra_dict)
+
         return json.dumps(payload, ensure_ascii=False)
 
-class RequestIdFilter(logging.Filter):
-    def filter(self, record: logging.LogRecord) -> bool:
-        rid = get_request_id()
-        if rid:
-            record.request_id = rid
-        return True
 
-_DEF_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+def configure_logging(log_level: str = "INFO") -> None:
+    """
+    Configures the root logger for the application.
+    This should be called once on application startup.
+    It removes all existing handlers and sets up a new one for JSON output to stdout.
+    """
+    root_logger = logging.getLogger()
+    # If handlers are already present, it means logging was configured.
+    if root_logger.handlers:
+        return
 
-def configure_logging(app_name: str = "pdf-text-extractor") -> None:
-    """Configure root logger for JSON output to stdout."""
-    root = logging.getLogger()
-    root.setLevel(_DEF_LEVEL)
+    root_logger.setLevel(log_level.upper())
 
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(JsonFormatter())
-    handler.addFilter(RequestIdFilter())
 
-    # Clear existing handlers to avoid duplicates in reloads
-    root.handlers.clear()
-    root.addHandler(handler)
+    root_logger.handlers.clear()
+    root_logger.addHandler(handler)
 
-    # Silence overly chatty loggers (tune as needed)
-    for noisy in ("uvicorn.error", "uvicorn.access", "asyncio", "httpx"):
-        logging.getLogger(noisy).setLevel(logging.WARNING)
+    # Silence overly verbose loggers from libraries.
+    for noisy_logger in ("uvicorn.error", "uvicorn.access", "httpx"):
+        logging.getLogger(noisy_logger).setLevel(logging.WARNING)
 
-    logging.getLogger(app_name).info("logging configured", extra={"app": app_name, "level": _DEF_LEVEL})
+    logging.getLogger("logging_config").info(f"Logging configured at level {log_level.upper()}.")
 
 
 def get_logger(name: str) -> logging.Logger:
+    """A convenience function to get a logger instance."""
     return logging.getLogger(name)

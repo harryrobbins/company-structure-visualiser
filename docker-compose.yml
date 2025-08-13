@@ -1,16 +1,30 @@
+# docker-compose.yml (Updated)
+# Aligns ports, environment variables, and volumes with the project structure.
 version: '3.8'
 services:
-  aigent:
+  pdf_extractor:
     build: .
-    image: aigent:latest
-    container_name: aigent_app
+    image: pdf-extractor:latest
+    container_name: pdf_extractor_app
+    # Standardized environment variables.
+    # These now align with the names used in api/config.py.
     environment:
-      - OPENAI_API_BASE=${OPENAI_API_BASE}
+      - ROOT_PATH=${ROOT_PATH:-}
+      - LLM_PROVIDER=${LLM_PROVIDER:-openai}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - ROOT_URL=${ROOT_URL:-}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
+      - OPENAI_MODEL_NAME=${OPENAI_MODEL_NAME:-gpt-4o-mini}
+      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT:-}
+      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY:-}
+      - AZURE_OPENAI_DEPLOYMENT_NAME=${AZURE_OPENAI_DEPLOYMENT_NAME:-}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
     ports:
+      # Port mapping corrected. The host port 8000 now correctly maps
+      # to the container port 8000 where Uvicorn will be running.
       - '8000:8000'
     volumes:
-      - ./frontend/static:/app/frontend/static
-      - ./backend:/app/backend
-    command: uvicorn app:app --host 0.0.0.0 --port 8002
+      # Volume paths corrected to match the actual project layout.
+      # This mounts the entire project directory for hot-reloading.
+      - .:/app
+    # Command updated to run on port 8000, matching the port mapping.
+    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload

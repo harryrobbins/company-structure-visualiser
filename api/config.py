@@ -1,4 +1,5 @@
-# api/config.py
+# api/config.py (Updated)
+# Centralizes configuration and aligns with standardized environment variables.
 
 import os
 from pathlib import Path
@@ -9,10 +10,10 @@ class Settings(BaseSettings):
     """
     Manages application settings and configuration loaded from a .env file.
     Using pydantic-settings ensures type-safe and validated configuration.
+    Variable names directly map to the environment variables.
     """
     # --- Provider Settings ---
     # Determines which LLM provider to use: 'openai' or 'azure'.
-    # This is loaded from the .env file. Defaults to 'openai'.
     LLM_PROVIDER: Literal["openai", "azure"] = "openai"
 
     # --- Standard OpenAI Settings ---
@@ -23,12 +24,13 @@ class Settings(BaseSettings):
     # --- Azure OpenAI Settings ---
     AZURE_OPENAI_ENDPOINT: Optional[str] = None
     AZURE_OPENAI_API_KEY: Optional[str] = None
-    OPENAI_API_VERSION: Optional[str] = "2024-02-01"
+    OPENAI_API_VERSION: str = "2024-02-01"
     AZURE_OPENAI_DEPLOYMENT_NAME: Optional[str] = None
 
     # --- Application Settings ---
     # The root path for deploying the app under a sub-directory.
     ROOT_PATH: str = ""
+    LOG_LEVEL: str = "INFO"
 
     model_config = SettingsConfigDict(
         # Load settings from a .env file located in the project's root directory
