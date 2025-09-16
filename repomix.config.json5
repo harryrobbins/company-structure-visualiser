@@ -11,7 +11,9 @@
     "useDefaultPatterns": true,
     // Patterns can also be specified in .repomixignore
     "customPatterns": [
-      "static/libs"
+      "static/libs",
+      "static/dist",
+      ".pnpm-store"
     ],
   },
 

@@ -3,3 +3,7 @@
 .idea
 repomix.txt
 **/__pycache__
+node_modules
+static/dist
+run_pnpm.sh
+.pnpnm-store

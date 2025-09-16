@@ -1,46 +1,16 @@
+<!-- frontend/index.html -->
 <!DOCTYPE html>
-
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PDF Text Extractor</title>
-
-  <!-- Tailwind (local) -->
-
-  <script src="[[ url_for('static', path='/libs/tailwind.js') ]]" defer></script>
-
-  <!-- Expose the backend root path to JS (FastAPI passes [[ root_url ]]) -->
-
-  <script>
-    window.ROOT_PATH = "[[ root_url ]]" || "";
-  </script>
-
-  <!-- Import map: resolve bare specifiers to local ESM files (no CDN, no bundler) -->
-
-  <script type="importmap">
-  {
-    "imports": {
-      "vue": "[[ url_for('static', path='/libs/vue.esm-browser.js') ]]",
-      "dexie": "[[ url_for('static', path='/libs/dexie.mjs') ]]",
-      "pdfjs": "[[ url_for('static', path='/libs/pdf.mjs') ]]",
-      "logging": "[[ url_for('static', path='/js/logging.js') ]]"
-    }
-  }
-  </script>
-
-</head>
-<body class="bg-gray-100 font-sans">
-  <!-- Vue mounts here -->
-  <div id="app">
-    <div class="flex items-center justify-center min-h-screen">
-      <p class="text-gray-500">Loading Application...</p>
-    </div>
-  </div>
-
-  <!-- App entry (ES module) -->
-
-  <script type="module" src="[[ url_for('static', path='/js/main.js') ]]"></script>
-
-</body>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Visualizer</title>
+    <script type="module" crossorigin src="/static/dist/assets/index-Cwz_86uL.js"></script>
+    <link rel="stylesheet" crossorigin href="/static/dist/assets/index-CPMAiObl.css">
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
 </html>
+
