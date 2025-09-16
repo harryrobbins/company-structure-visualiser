@@ -1,9 +1,11 @@
 .env
 .venv
 .idea
+.vscode
 repomix.txt
 **/__pycache__
 node_modules
+frontend/node_modules
 static/dist
 run_pnpm.sh
-.pnpnm-store
+.pnpm-store
