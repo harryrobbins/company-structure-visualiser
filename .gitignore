@@ -6,6 +6,10 @@ repomix.txt
 **/__pycache__
 node_modules
 frontend/node_modules
-static/dist
+backend/static/dist
 run_pnpm.sh
 .pnpm-store
+**/*.duckdb
+**/*.db
+**/*.csv
+**/*.zip

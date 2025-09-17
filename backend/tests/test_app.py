@@ -5,8 +5,6 @@ import pytest
 from httpx import AsyncClient, ASGITransport
 from fastapi import status
 
-# Add the project root directory to the Python path.
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Import your FastAPI app instance
 from app import app

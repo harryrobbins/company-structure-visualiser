@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && mv ../static/dist/index.html ../templates/index.html",
+    "build": "vite build && mv ../backend/static/dist/index.html ../backend/templates/index.html",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

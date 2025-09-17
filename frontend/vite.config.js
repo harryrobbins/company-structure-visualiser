@@ -18,7 +18,7 @@ export default defineConfig(({ command }) => {
     plugins: [vue()],
     root: '.',
     build: {
-      outDir: '../static/dist',
+      outDir: '../backend/static/dist',
       assetsDir: 'assets',
       manifest: true,
       emptyOutDir: true,
@@ -31,7 +31,7 @@ export default defineConfig(({ command }) => {
       port: 5174,
       proxy: {
         '/api': {
-          target: 'http://127.0.0.1:8000',
+          target: 'http://127.0.0.1:8050',
           changeOrigin: true,
         },
       },

@@ -12,5 +12,5 @@ set -e
 # --reload: Enables hot reloading. The server will restart automatically when you change backend Python files.
 PORT=8050
 echo "Starting FastAPI server with hot-reloading at http://localhost:$PORT"
-uvicorn app:app --host 0.0.0.0 --port $PORT --reload
+uvicorn src.app:app --host 0.0.0.0 --port $PORT --reload
 

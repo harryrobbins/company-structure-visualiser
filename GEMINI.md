@@ -24,10 +24,10 @@ The frontend is a Single Page Application (SPA) responsible for:
 3.  **Data Persistence**: Using `Dexie.js` to store the parsed company and ownership data in the user's browser (IndexedDB) in a relational format (`spreadsheets`, `companies`, `ownership` tables).
 4.  **Visualization**: Transforming the relational data into a node-edge format compatible with the `Vue Flow` library and rendering the interactive graph.
 
-### 3.2. Backend (`/app.py`)
+### 3.2. Backend (`/backend`)
 
 The backend is a minimal FastAPI application with a single primary role: **to serve the production-ready frontend**. It does not handle any of the core business logic (like parsing files). Its key functions are:
-1.  **Static File Serving**: Mounting the `/static` directory to serve compiled JavaScript, CSS, and other assets.
+1.  **Static File Serving**: Mounting the `/backend/static` directory to serve compiled JavaScript, CSS, and other assets.
 2.  **Dynamic HTML Rendering**: Using a Jinja2 template to render the main `index.html`, dynamically injecting the correct paths to the version-hashed JS and CSS files by reading a Vite-generated `manifest.json`.
 
 ---
@@ -39,7 +39,7 @@ The backend is a minimal FastAPI application with a single primary role: **to se
 The development environment is optimized for productivity using Vite's capabilities.
 
 1.  **Two-Server Process**:
-    -   The **FastAPI server** is run via `uvicorn app:app --reload`. Its role is minimal, mostly for future API endpoints.
+    -   The **FastAPI server** is run via `uvicorn app:app --reload` from the `/backend` directory. Its role is minimal, mostly for future API endpoints.
     -   The **Vite dev server** is run via `pnpm run dev` from the `/frontend` directory. This is the primary server the developer interacts with.
 2.  **Vite's Role**:
     -   It serves the application from memory, providing near-instant Hot Module Replacement (HMR).
@@ -52,17 +52,17 @@ This workflow generates a set of optimized, static files for deployment.
 
 1.  **Build Command**: `pnpm run build` is executed from the `/frontend` directory.
 2.  **Vite Build Process**:
-    -   The `vite.config.js` sets `base: '/static/dist/'`. This prepends all asset URLs in the final HTML with the correct path for FastAPI.
+    -   The `vite.config.js` sets `base: '/backend/static/dist/'`. This prepends all asset URLs in the final HTML with the correct path for FastAPI.
     -   Vite compiles, bundles, and minifies all Vue/JS/CSS source files.
-    -   The output is placed in `/static/dist/`. The `emptyOutDir: true` option ensures a clean build directory.
+    -   The output is placed in `/backend/static/dist/`. The `emptyOutDir: true` option ensures a clean build directory.
     -   Crucially, it generates a `.vite/manifest.json` file, which maps original filenames to their final, content-hashed output filenames (e.g., `main.js` -> `assets/index-cW5C_ezi.js`).
-3.  **Post-Build Script**: The `&& mv ../static/dist/index.html ../templates/index.html` command in `package.json` moves the generated HTML file into the `/templates` directory, making it a Jinja2 template.
+3.  **Post-Build Script**: The `&& mv ../backend/static/dist/index.html ../backend/templates/index.html` command in `package.json` moves the generated HTML file into the `/backend/templates` directory, making it a Jinja2 template.
 4.  **FastAPI Serving Process**:
-    -   When a user requests the root URL (`/`), the `@app.get("/")` endpoint in `app.py` is triggered.
-    -   The `get_vite_assets` function reads `/static/dist/.vite/manifest.json`.
+    -   When a user requests the root URL (`/`), the `@app.get("/")` endpoint in `backend/app.py` is triggered.
+    -   The `get_vite_assets` function reads `/backend/static/dist/.vite/manifest.json`.
     -   It extracts the paths for all necessary JavaScript and CSS files.
     -   It passes these file paths as lists (`js_paths`, `css_paths`) to the Jinja2 template.
-    -   Jinja2 renders `templates/index.html`, iterating through the lists to inject the correct `<script>` and `<link>` tags with the versioned asset paths. This ensures the browser never serves a stale cached version of the assets.
+    -   Jinja2 renders `backend/templates/index.html`, iterating through the lists to inject the correct `<script>` and `<link>` tags with the versioned asset paths. This ensures the browser never serves a stale cached version of the assets.
 
 ## 5. Key Configuration Files Analysis
 
@@ -72,7 +72,7 @@ This workflow generates a set of optimized, static files for deployment.
 -   **`frontend/package.json`**:
     -   Contains the `build` script which chains the Vite build and the subsequent `mv` command.
     -   The `"type": "module"` entry is important for ensuring Node.js correctly interprets the modern ES Module syntax used in the configuration files.
--   **`app.py`**: Configures Jinja2 to use `[[...]]` delimiters to avoid conflicts with Vue's `{{...}}` syntax. It contains the logic to read the Vite manifest and serve the application.
+-   **`backend/app.py`**: Configures Jinja2 to use `[[...]]` delimiters to avoid conflicts with Vue's `{{...}}` syntax. It contains the logic to read the Vite manifest and serve the application.
 
 ## 6. Data Flow Summary
 
