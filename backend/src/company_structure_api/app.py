@@ -1,31 +1,42 @@
 # app.py
 import json
-import jinja2
 from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from companies_duck_house.router import router as companies_router
+
 
 app = FastAPI()
+
+app.include_router(companies_router)
+
+# Get the directory where this script is located
+BASE_DIR = Path(__file__).parent.parent.parent
+
+# Make paths relative to the script location
+TEMPLATES_DIR = BASE_DIR / "templates"
+STATIC_DIR = BASE_DIR / "static"
 
 # --- FIX ---
 # The Jinja2Templates class from FastAPI/Starlette does not accept a pre-built 'env' object.
 # Instead, you pass the configuration arguments for the Jinja2 Environment directly to its constructor.
 # It will automatically create the FileSystemLoader with the provided directory.
 templates = Jinja2Templates(
-    directory="templates",
+    directory=str(TEMPLATES_DIR),
     variable_start_string="[[",
     variable_end_string="]]",
 )
 # --- End of FIX ---
 
 
-# Mount the 'static' directory to serve files like JS, CSS, and images
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# Mount the 'static' directory using absolute path
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
-# Path to the Vite manifest file. Adjusted path to match your tree.
-VITE_MANIFEST_PATH = Path("static/assets/dist/.vite/manifest.json")
+# Path to the Vite manifest file using absolute path
+VITE_MANIFEST_PATH = STATIC_DIR / "assets/dist/.vite/manifest.json"
+
 
 
 def get_vite_assets(request: Request):
