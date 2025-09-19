@@ -5,10 +5,10 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from openai import APIConnectionError, RateLimitError, APIStatusError
 
-from . import llm_interface
-from .models import ImageExtractionRequest, TextExtractionResponse
-from .llm_client import LLMClientDep, get_llm_client
-from .errors import AppError
+from src.api import llm_interface
+from src.api.models import ImageExtractionRequest, TextExtractionResponse
+from src.api.llm_client import LLMClientDep, get_llm_client
+from src.api.errors import AppError
 
 # Get a logger instance. The duplicate basicConfig and logger definitions are removed.
 logger = logging.getLogger(__name__)
@@ -62,4 +62,3 @@ async def extract_text_from_image(
         logger.exception("An unexpected error occurred during text extraction.", extra={"page": request.page_number})
         raise AppError(status_code=500, code="extraction_failed",
                        message="An internal error occurred while processing the page.")
-

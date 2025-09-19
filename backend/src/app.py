@@ -7,7 +7,25 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+# Import the new router
+from src.api.routers.companies import router as companies_api_router
+from src.api.routers.llm import router as llm_api_router
+from src.companies_duck_house.core import CompaniesHouseDB
+from src.config import settings
+import os
+
+
 app = FastAPI()
+
+@app.on_event("startup")
+def startup_event():
+    data_dir = Path(settings.data_dir)
+    data_dir.mkdir(exist_ok=True)
+
+    db = CompaniesHouseDB(db_path=settings.db_path)
+    db.connect()
+    db.create_database_from_source(source=settings.data_source)
+    db.disconnect()
 
 # --- FIX ---
 # The Jinja2Templates class from FastAPI/Starlette does not accept a pre-built 'env' object.
@@ -89,15 +107,15 @@ async def read_root(request: Request):
     """
     vite_assets = get_vite_assets(request)
     return templates.TemplateResponse(
+        request,
         "index.html",
         {
-            "request": request,
             "js_paths": vite_assets.get("js_paths", []),
             "css_paths": vite_assets.get("css_paths", []),
         },
     )
 
 
-# You can add your API routers here
-# from api.router import router as api_router
-# app.include_router(api_router, prefix="/api")
+# Include your API routers
+app.include_router(llm_api_router)
+app.include_router(companies_api_router)

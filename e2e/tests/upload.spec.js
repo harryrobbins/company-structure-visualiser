@@ -6,7 +6,7 @@ import path from 'path';
 const DEV_URL = 'http://localhost:5174';
 
 // Path to your sample data file
-const sampleFilePath = path.join(__dirname, '../../backend/sample_data/sample company ownership.xlsx');
+const sampleFilePath = path.join(__dirname, '../../sample_data/sample_company_ownership.xlsx');
 
 test.describe('Company Visualizer E2E Test', () => {
   test('should load the page, upload a file, and render a graph', async ({ page }) => {

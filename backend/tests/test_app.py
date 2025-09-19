@@ -7,7 +7,7 @@ from fastapi import status
 
 
 # Import your FastAPI app instance
-from app import app
+from src.app import app
 
 
 # This fixture creates a new test client for each test function

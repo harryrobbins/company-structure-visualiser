@@ -14,14 +14,14 @@ from rich.progress import (
 )
 
 from .models import Company, PYDANTIC_TO_DUCKDB
+from src.config import settings
 
 
 class CompaniesHouseDB:
-    DEFAULT_DB_PATH = "companies.duckdb"
     COMPANIES_TABLE_NAME = "companies"
     FTS_INDEX_NAME = "companies_fts_idx"
 
-    def __init__(self, db_path: str = DEFAULT_DB_PATH):
+    def __init__(self, db_path: str):
         self.db_path = db_path
         self.con = None
 
@@ -62,7 +62,7 @@ class CompaniesHouseDB:
         self.con.execute("DROP TABLE IF EXISTS " + self.COMPANIES_TABLE_NAME)
 
         source_path = Path(source)
-        data_dir = Path("./companies_house_data")
+        data_dir = Path(settings.data_dir)
         data_dir.mkdir(exist_ok=True)
         csv_file_path = None
 

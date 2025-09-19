@@ -82,3 +82,22 @@ This workflow generates a set of optimized, static files for deployment.
 4.  **Persist**: The JSON data is saved into IndexedDB using Dexie in a relational schema (one `spreadsheets` record, multiple `companies` and `ownership` records).
 5.  **Transform**: Data is retrieved from Dexie. The `companies` are mapped to Vue Flow `nodes`, and the `ownership` data is mapped to `edges`. Unique UUIDs generated during the persistence step are used as node IDs to ensure graph integrity.
 6.  **Render**: The `nodes` and `edges` reactive variables are updated, causing Vue Flow to render the interactive graph.
+
+
+## 7. Testing 
+
+## 7.1 Testing the backend
+
+cd backend
+activate .venv
+uv sync
+pytest
+
+## 7.2 Testing the frontend
+
+Not implemented yet
+
+## 7.3 run end to end tests
+
+First ensure vite server is running on  http://localhost:5174/
+cd e2e

@@ -62,7 +62,8 @@ class Company(BaseModel):
 
     model_config = ConfigDict(
         populate_by_name=True,
-        extra='allow'
+        extra='allow',
+        json_schema_serialization_by_alias=False
     )
 
 # Mapping from Pydantic type to DuckDB type
