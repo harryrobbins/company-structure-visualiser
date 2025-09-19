@@ -8,7 +8,7 @@ from fastapi.templating import Jinja2Templates
 from companies_duck_house.router import router as companies_router
 
 
-app = FastAPI()
+app = FastAPI(title="Company Structure API")
 
 app.include_router(companies_router)
 
