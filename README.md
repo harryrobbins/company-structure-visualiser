@@ -22,7 +22,7 @@ An interactive web application to visualize complex company ownership structures
 -   **Build Tool**: [Vite](https://vitejs.dev/)
 -   **Styling**: [Tailwind CSS](https://tailwindcss.com/)
 -   **Graph Visualization**: [Vue Flow](https://vueflow.dev/)
--   **Client-Side Database**: [Dexie.js](https://dexie.org/) (IndexedDB Wrapper)
+-   **Client-Side State**: [Pinia](https://pinia.vuejs.org/)
 -   **Package Manager**: [pnpm](https://pnpm.io/)
 
 ### Backend
