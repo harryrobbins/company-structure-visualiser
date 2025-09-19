@@ -1,13 +1,10 @@
 # /tests/test_app.py
-import sys
-import os
 import pytest
 from httpx import AsyncClient, ASGITransport
 from fastapi import status
 
-
 # Import your FastAPI app instance
-from app import app
+from company_structure_api.app import app
 
 
 # This fixture creates a new test client for each test function

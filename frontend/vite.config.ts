@@ -1,4 +1,5 @@
 import { fileURLToPath, URL } from 'node:url'
+import path from 'node:path'
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
@@ -34,12 +35,26 @@ export default defineConfig(({ command }) => {
           handler(html) {
             // assets are copied from the govuk ui library and vite does not rewrite their paths for us
             if (isProduction) {
-              return html.replace(/href="\/assets\//g, `href="${BASE_PATH}`)
+              return html.replace(/href="\/assets\//g, `href="${BASE_PATH}assets/`)
             }
             return html
           }
+        },
+        generateBundle(options, bundle) {
+          if (isProduction) {
+            // Rewrite CSS URLs for GOV.UK fonts
+            Object.keys(bundle).forEach(fileName => {
+              const file = bundle[fileName];
+              if (file.type === 'asset' && fileName.endsWith('.css')) {
+                file.source = file.source.toString().replace(
+                  /url\(\/assets\//g,
+                  `url(${BASE_PATH}assets/`
+                );
+              }
+            });
+          }
         }
-      }
+      },
     ],
     resolve: {
       alias: {

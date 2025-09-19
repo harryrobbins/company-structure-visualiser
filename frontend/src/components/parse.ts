@@ -1,4 +1,4 @@
-import * as XLSX from 'exceljs'
+import { Workbook, type Worksheet } from 'exceljs'
 import * as z from 'zod/mini'
 import type { Edge, Node } from '@vue-flow/core'
 
@@ -19,7 +19,7 @@ const OwnershipRow = z.object({
 })
 
 export async function parseCompanyOwnershipWorkbook(data: ArrayBuffer): Promise<CompanyGraph> {
-  const workbook = new XLSX.Workbook();
+  const workbook = new Workbook();
   try {
     await workbook.xlsx.load(data)
   } catch (e) {
@@ -88,7 +88,7 @@ export async function parseCompanyOwnershipWorkbook(data: ArrayBuffer): Promise<
   return result
 }
 
-function toJson<Z extends z.ZodMiniObject, T = z.infer<Z>>(sheet: XLSX.Worksheet, schema: Z): T[] {
+function toJson<Z extends z.ZodMiniObject, T = z.infer<Z>>(sheet: Worksheet, schema: Z): T[] {
   if (sheet.rowCount <= 1) return []
   const headerRow = sheet.getRow(1).values as string[]
   const result: T[] = []

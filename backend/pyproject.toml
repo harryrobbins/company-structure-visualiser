@@ -1,9 +1,9 @@
 [project]
-name = "companies-house-db"
+name = "company_structure_api"
 version = "0.1.0"
 description = "A Python package to download UK Companies House data into a searchable DuckDB database with FTS."
 readme = "../README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.13"
 authors = [
     { name = "Your Name", email = "your@email.com" },
 ]
@@ -25,6 +25,13 @@ dependencies = [
     "pyarrow>=17.0.0",
     "uvicorn[standard]>=0.24.0",
 ]
+
+[build-system]
+requires = ["uv_build>=0.8.15,<0.9.0"]
+build-backend = "uv_build"
+
+[project.scripts]
+company_structure_api = "company_structure_api:main"
 
 [project.urls]
 Homepage = "https://github.com/your-username/companies-house-db"
