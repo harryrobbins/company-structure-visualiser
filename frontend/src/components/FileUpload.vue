@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { useCompanyStore } from '../stores/company.ts'
-import { parseCompanyOwnershipWorkbook } from './parse.ts'
+import { useParse } from '@/composables/useParse'
+import {useGraphStore} from "@/stores/graph.ts";
 
 const files = ref<FileList | null>(null)
 const error = ref<string | null>(null)
 const loading = ref(false)
-const companyStore = useCompanyStore()
+const { parseFile, resetParse } = useParse()
+const graphStore = useGraphStore()
 
 watch(files, async () => {
   const file = files.value?.[0]
@@ -16,8 +17,7 @@ watch(files, async () => {
 
   try {
     const arrayBuffer = await file.arrayBuffer()
-    const companyGraph = await parseCompanyOwnershipWorkbook(arrayBuffer)
-    companyStore.addGraph(companyGraph)
+    await parseFile(arrayBuffer)
     error.value = null
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'An error occurred while processing the file.'
@@ -29,23 +29,23 @@ watch(files, async () => {
 function reset() {
   files.value = null
   error.value = null
-  companyStore.$reset()
+  resetParse()
 }
 
 </script>
 
 <template>
   <div class="p-4">
-    <gv-back-link v-if="companyStore.graph" @click.prevent="reset">Upload another file</gv-back-link>
+    <gv-back-link v-if="graphStore.graph" @click.prevent="reset">Upload another file</gv-back-link>
 
-    <gv-error-summary v-if="!companyStore.graph && error" :disable-auto-focus="true">
+    <gv-error-summary v-if="!graphStore.graph && error" :disable-auto-focus="true">
       <gv-error-link target-id="file-upload">
         {{ error }}
       </gv-error-link>
     </gv-error-summary>
 
     <gv-file-upload
-      v-if="!companyStore.graph"
+      v-if="!graphStore.graph"
       :disabled="loading"
       id="file-upload"
       label="Upload your company organization data"

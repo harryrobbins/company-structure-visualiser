@@ -13,9 +13,10 @@ const BASE_PATH = process.env.BASE_PATH || '/static/dist/'
 export default defineConfig(({ command }) => {
   // This function allows us to have different configs for 'serve' and 'build'.
   const isProduction = command === 'build';
+  const base = isProduction ? BASE_PATH : '/';
 
   return {
-    base: isProduction ? BASE_PATH : '/',
+    base,
     plugins: [
       vue(),
       vueDevTools(),
@@ -60,6 +61,9 @@ export default defineConfig(({ command }) => {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url))
       },
+    },
+    define: {
+      __BASE_PATH__: JSON.stringify(base),
     },
     root: '.',
     build: {

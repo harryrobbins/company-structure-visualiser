@@ -3,10 +3,10 @@ import { nextTick } from 'vue'
 import { useVueFlow } from '@vue-flow/core'
 import { VueFlow } from '@vue-flow/core'
 import { Controls } from '@vue-flow/controls';
-import { useCompanyStore } from '@/stores/company.ts'
+import { useGraphStore } from '@/stores/graph.ts'
 import { useLayout } from '@/composables/useLayout.ts'
 
-const companyStore = useCompanyStore()
+const companyStore = useGraphStore()
 const { layout } = useLayout()
 const { fitView } = useVueFlow()
 
@@ -21,7 +21,7 @@ async function layoutGraph() {
 </script>
 
 <template>
-  <section class="h-full">
+  <section class="h-200">
     <VueFlow
       v-if="companyStore.graph"
       :nodes="companyStore.graph?.nodes"
@@ -29,10 +29,9 @@ async function layoutGraph() {
       fit-view-on-init
       @nodes-initialized="layoutGraph"
     >
-      <Controls />
+      <Controls position="top-right" />
     </VueFlow>
   </section>
-
 </template>
 
 <style scoped></style>
