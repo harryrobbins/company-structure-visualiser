@@ -7,7 +7,7 @@ from httpx import AsyncClient, ASGITransport
 from fastapi import status
 
 # Import your FastAPI app and the dependency function we need to override
-from src.app import app
+from src.company_structure_api.app import app
 from src.api.dependencies import get_db
 from src.companies_duck_house.core import CompaniesHouseDB
 from src.config import settings
