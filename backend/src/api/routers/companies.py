@@ -6,9 +6,13 @@ API router for company-related endpoints.
 
 import logging
 from fastapi import APIRouter, Depends, HTTPException
+from openai import AsyncOpenAI, AsyncAzureOpenAI
+
 from src.companies_duck_house.core import CompaniesHouseDB
 from src.api.dependencies import get_db
-from src.api.models import CompanyMatchRequest, CompanyMatchResponse
+from src.api.models import CompanyMatchRequest, CompanyMatchResponse, CompanyMatch
+from src.api.llm_client import LLMClientDep
+from src.api.llm_interface import recommend_best_match
 
 logger = logging.getLogger(__name__)
 
@@ -23,11 +27,13 @@ router = APIRouter(prefix="/api")
 )
 async def match_companies(
     request: CompanyMatchRequest,
-    db: CompaniesHouseDB = Depends(get_db)
+    db: CompaniesHouseDB = Depends(get_db),
+    llm_client: AsyncOpenAI | AsyncAzureOpenAI = LLMClientDep,
 ):
     """
     Accepts a list of company names and returns the closest matches
     from the Companies House database using Full-Text Search.
+    For each name, it uses an LLM to recommend the best match.
     """
     logger.info(
         f"Received request to match {len(request.company_names)} company names."
@@ -35,11 +41,36 @@ async def match_companies(
     results = {}
     try:
         for name in request.company_names:
-            # For each name in the request, perform a search.
-            # The `search_companies_by_name` method is defined in your core logic.
-            # We can also set a limit for the number of matches per name.
             matches = db.search_companies_by_name(name, limit=5)
-            results[name] = matches
+
+            if not matches:
+                results[name] = CompanyMatch(recommended_match=None, other_matches=[])
+                continue
+
+            recommended_company_number = await recommend_best_match(
+                client=llm_client,
+                query=name,
+                matches=matches
+            )
+
+            recommended_match = None
+            other_matches = []
+
+            if recommended_company_number:
+                for match in matches:
+                    if match.company_number == recommended_company_number:
+                        recommended_match = match
+                    else:
+                        other_matches.append(match)
+            
+            if not recommended_match:
+                # if LLM fails or returns invalid number, return all as other_matches
+                other_matches = matches
+
+            results[name] = CompanyMatch(
+                recommended_match=recommended_match,
+                other_matches=other_matches
+            )
 
         return CompanyMatchResponse(matches=results)
 
