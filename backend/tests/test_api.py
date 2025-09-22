@@ -10,30 +10,33 @@ from fastapi import status
 from src.app import app
 from src.api.dependencies import get_db
 from src.companies_duck_house.core import CompaniesHouseDB
+from src.config import settings
 
 # Path to the sample data for testing
 TESTS_DIR = Path(__file__).parent
 SAMPLE_CSV = str(TESTS_DIR / "companies_house_sample_data.csv")
-TEST_DB_FILE = "api_test_companies.duckdb"
+TEST_DB_FILE = settings.test_db_path
 
 
 # This fixture sets up a temporary database with sample data for API tests
 @pytest.fixture(scope="module")
 def test_db_manager():
     # Clean up any old test database file before starting
-    if os.path.exists(TEST_DB_FILE):
-        os.remove(TEST_DB_FILE)
+    db_path = Path(TEST_DB_FILE)
+    db_path.parent.mkdir(exist_ok=True)
+    if db_path.exists():
+        os.remove(db_path)
 
     # Create a new database instance from the sample CSV
-    db_manager = CompaniesHouseDB(db_path=TEST_DB_FILE)
+    db_manager = CompaniesHouseDB(db_path=str(db_path))
     with db_manager as ch_db:
         ch_db.create_database_from_source(source=SAMPLE_CSV)
         # Yield the manager to the tests INSIDE the context manager
         yield ch_db
 
     # Teardown: clean up the test database file after all tests in the module run
-    if os.path.exists(TEST_DB_FILE):
-        os.remove(TEST_DB_FILE)
+    if db_path.exists():
+        os.remove(db_path)
 
 
 # This fixture provides a test client with the database dependency overridden
@@ -54,10 +57,14 @@ async def client(test_db_manager):
 # --- Test Cases for the New Endpoint ---
 
 @pytest.mark.anyio
-async def test_match_companies_success(client: AsyncClient):
+async def test_match_companies_success(client: AsyncClient, mocker):
     """
     Tests the /api/match-companies endpoint with a valid request.
     """
+    mock_recommend = mocker.patch(
+        "src.api.routers.companies.recommend_best_match",
+        side_effect=["11743365", "SC606050"]
+    )
     request_data = {"company_names": ["GRAPHICS", "INSPIRED INVESTMENTS"]}
     response = await client.post("/api/match-companies", json=request_data)
 
@@ -70,11 +77,13 @@ async def test_match_companies_success(client: AsyncClient):
     assert "INSPIRED INVESTMENTS" in data["matches"]
 
     # Check the content of the matches
-    assert len(data["matches"]["GRAPHICS"]) == 1
-    assert data["matches"]["GRAPHICS"][0]["CompanyName"] == "!BIG IMPACT GRAPHICS LIMITED"
+    assert data["matches"]["GRAPHICS"]["recommended_match"]["CompanyName"] == "!BIG IMPACT GRAPHICS LIMITED"
+    assert len(data["matches"]["GRAPHICS"]["other_matches"]) == 0
 
-    assert len(data["matches"]["INSPIRED INVESTMENTS"]) == 1
-    assert data["matches"]["INSPIRED INVESTMENTS"][0]["CompanyName"] == "!NSPIRED INVESTMENTS LTD"
+    assert data["matches"]["INSPIRED INVESTMENTS"]["recommended_match"]["CompanyName"] == "!NSPIRED INVESTMENTS LTD"
+    assert len(data["matches"]["INSPIRED INVESTMENTS"]["other_matches"]) == 0
+    
+    assert mock_recommend.call_count == 2
 
 
 @pytest.mark.anyio
@@ -89,7 +98,8 @@ async def test_match_companies_no_results(client: AsyncClient):
     data = response.json()
     assert "matches" in data
     assert "COMPANYTHATDOESNOTEXIST" in data["matches"]
-    assert len(data["matches"]["COMPANYTHATDOESNOTEXIST"]) == 0
+    assert data["matches"]["COMPANYTHATDOESNOTEXIST"]["recommended_match"] is None
+    assert len(data["matches"]["COMPANYTHATDOESNOTEXIST"]["other_matches"]) == 0
 
 
 @pytest.mark.anyio

@@ -55,6 +55,16 @@ class CompaniesHouseDB:
             self.con = None
             print("Database connection closed.")
 
+    def table_exists(self, table_name: str) -> bool:
+        """Checks if a table exists in the database."""
+        if not self.con:
+            raise ConnectionError("Database is not connected.")
+        try:
+            self.con.execute(f"SELECT 1 FROM {table_name} LIMIT 1;")
+            return True
+        except duckdb.CatalogException:
+            return False
+
     def create_database_from_source(self, source: str):
         if not self.con:
             raise ConnectionError("Database is not connected. Please connect first.")
@@ -81,7 +91,7 @@ class CompaniesHouseDB:
             raise FileNotFoundError("Could not find a CSV file to load.")
 
         print(f"Loading data from '{csv_file_path}' into table '{self.COMPANIES_TABLE_NAME}'...")
-        safe_csv_path = str(csv_file_path).replace("\\", "/")
+        safe_csv_path = csv_file_path.as_posix()
 
         columns_definition = {}
         select_clauses = []
@@ -112,7 +122,8 @@ class CompaniesHouseDB:
         print(f"Creating FTS index on table '{self.COMPANIES_TABLE_NAME}'...")
         self.con.execute(f"""
             PRAGMA create_fts_index('{self.COMPANIES_TABLE_NAME}', 'company_number', 'company_name', overwrite=1);
-        """)
+        """
+        )
         print("FTS index created successfully.")
 
     def _download_file(self, url: str, dest_path: Path):
@@ -170,4 +181,3 @@ class CompaniesHouseDB:
         query = f"SELECT * FROM {self.COMPANIES_TABLE_NAME} WHERE company_number = ?;"
         results = self.execute_sql(query, [company_number])
         return results[0] if results else None
-

@@ -1,11 +1,13 @@
 # app.py
 import json
-import jinja2
+import asyncio
+from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from jinja2 import Environment, FileSystemLoader
 
 # Import the new router
 from src.api.routers.companies import router as companies_api_router
@@ -15,27 +17,43 @@ from src.config import settings
 import os
 
 
-app = FastAPI()
+def run_startup_logic():
+    db_dir = Path(settings.db_dir)
+    db_dir.mkdir(exist_ok=True)
 
-@app.on_event("startup")
-def startup_event():
-    data_dir = Path(settings.data_dir)
-    data_dir.mkdir(exist_ok=True)
+    db_path = Path(settings.db_path)
+    db = CompaniesHouseDB(db_path=str(db_path))
 
-    db = CompaniesHouseDB(db_path=settings.db_path)
-    db.connect()
-    db.create_database_from_source(source=settings.data_source)
-    db.disconnect()
+    with db:
+        if settings.force_recreate_db or not db.table_exists("companies"):
+            if settings.force_recreate_db:
+                print("`force_recreate_db` is true, rebuilding database...")
+            else:
+                print(f"Table 'companies' not found in {db_path}, creating it...")
+            db.create_database_from_source(source=settings.data_source)
+        else:
+            print(f"Table 'companies' already exists in {db_path}, skipping creation.")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Running startup logic...")
+    await asyncio.to_thread(run_startup_logic)
+    print("Startup logic complete.")
+    yield
+
+app = FastAPI(lifespan=lifespan)
+
 
 # --- FIX ---
 # The Jinja2Templates class from FastAPI/Starlette does not accept a pre-built 'env' object.
 # Instead, you pass the configuration arguments for the Jinja2 Environment directly to its constructor.
 # It will automatically create the FileSystemLoader with the provided directory.
-templates = Jinja2Templates(
-    directory="templates",
+env = Environment(
+    loader=FileSystemLoader("templates"),
     variable_start_string="[[",
     variable_end_string="]]",
 )
+templates = Jinja2Templates(env=env)
 # --- End of FIX ---
 
 

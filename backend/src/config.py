@@ -37,11 +37,11 @@ class Settings(BaseSettings):
     ROOT_PATH: str = ""
     LOG_LEVEL: str = "INFO"
     
-    # Directory to store data files.
+    # --- Database Settings ---
+    db_dir: str = "db"
     data_dir: str = "data"
-
-    # Path to the DuckDB database file.
-    db_path: str = "data/companies.duckdb"
+    db_path: str = "db/companies.duckdb"
+    test_db_path: str = "db/test_companies.duckdb"
 
     # Path to the source data file for initial database creation.
     # Defaults to the large CSV file in the project root.
