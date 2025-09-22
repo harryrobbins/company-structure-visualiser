@@ -1,5 +1,5 @@
 # api/models.py
-from typing import List, Dict
+from typing import List, Dict, Optional
 from pydantic import BaseModel, Field
 from src.companies_duck_house.models import Company
 
@@ -17,14 +17,23 @@ class CompanyMatchRequest(BaseModel):
     )
 
 
+class CompanyMatch(BaseModel):
+    """
+    Represents the result of a company match, including a recommended match
+    and a list of other potential matches.
+    """
+    recommended_match: Optional[Company] = None
+    other_matches: List[Company]
+
+
 class CompanyMatchResponse(BaseModel):
     """
     Defines the response structure for the company matching endpoint.
     The keys of the 'matches' dictionary are the original search terms.
-    The values are lists of matching companies found in the database.
+    The values are objects containing the recommended match and other matches.
     """
 
-    matches: Dict[str, List[Company]]
+    matches: Dict[str, CompanyMatch]
 
 
 class ImageExtractionRequest(BaseModel):
