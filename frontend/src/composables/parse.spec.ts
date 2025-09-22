@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFile } from 'fs/promises'
 import { join } from 'path'
-import { parseCompanyOwnershipWorkbook } from './useParse' // adjust import path as needed
+import { parseCompanyOwnershipWorkbook } from './parse.ts' // adjust import path as needed
 
 function file(filename: string): Promise<Buffer> {
   return readFile(join(process.cwd(), 'sample-data', filename))

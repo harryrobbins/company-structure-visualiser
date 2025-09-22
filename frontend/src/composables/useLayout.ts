@@ -1,5 +1,6 @@
 import dagre from '@dagrejs/dagre'
 import { type Edge, type Node, Position, useVueFlow } from '@vue-flow/core'
+import type {CompanyGraph} from "@/composables/parse.ts";
 
 export type LayoutDirection = 'LR' | 'TB'
 
@@ -10,7 +11,7 @@ export type LayoutDirection = 'LR' | 'TB'
 export function useLayout() {
   const { findNode } = useVueFlow()
 
-  function layout(nodes: Node[], edges: Edge[], direction: LayoutDirection = 'TB') {
+  function layout({ nodes, edges }: CompanyGraph, direction: LayoutDirection = 'TB') {
     // we create a new graph instance, in case some nodes/edges were removed, otherwise dagre would act as if they were still there
     const dagreGraph = new dagre.graphlib.Graph()
 

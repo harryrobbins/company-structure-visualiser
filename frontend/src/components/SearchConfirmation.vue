@@ -1,37 +1,25 @@
 <script setup lang="ts">
-import { useGraphStore } from '@/stores/graph'
-import { computed } from 'vue'
-import type {CompanyMatch} from "@/api";
+import {type CompanyConfirmationUpdate, useAppStore} from '@/stores/app.ts'
 import CompanyMatchTag from "@/components/CompanyMatchTag.vue";
+import CompanyAddress from "@/components/CompanyAddress.vue";
+import {ref} from "vue";
 
-const graphStore = useGraphStore()
-const searchResults = computed(() => graphStore.currentSearch || [])
+const appStore = useAppStore()
 
-function formatAddress(match: CompanyMatch) {
-  const addressFields = [
-    match['RegAddress.CareOf'],
-    match['RegAddress.POBox'],
-    match['RegAddress.AddressLine1'],
-    match['RegAddress.AddressLine2'],
-    match['RegAddress.PostTown'],
-    match['RegAddress.County'],
-    match['RegAddress.Country'],
-    match['RegAddress.PostCode']
-  ]
+const updates = ref<CompanyConfirmationUpdate>({})
 
-  return addressFields
-    .filter(field => field && field.trim())
-    .join('<br>')
+function confirmSelection() {
+  appStore.confirm(updates.value)
 }
 
 </script>
 
 <template>
-  <div v-if="searchResults.length > 0">
+  <div v-if="appStore.graph.type == 'confirmation'">
     <div class="govuk-heading-xl">Matched Companies</div>
 
     <p class="govuk-body">
-      We found {{searchResults.length}} companies in the supplied spreadsheet.
+      We found {{ appStore.graph.searchResults.length }} companies in the supplied spreadsheet.
     </p>
 
     <p class="govuk-body">
@@ -45,7 +33,7 @@ function formatAddress(match: CompanyMatch) {
     </p>
 
     <gv-summary-list
-      v-for="(result, index) in searchResults"
+      v-for="(result, index) in appStore.graph.searchResults"
       :key="index"
     >
       <template #card-title>
@@ -65,21 +53,21 @@ function formatAddress(match: CompanyMatch) {
       <template v-if="result.best_match">
         <gv-summary-list-row
           key-text="Company Name"
-          :value-text="result.best_match!.CompanyName"
+          :value-text="result.best_match.CompanyName"
         />
         <gv-summary-list-row
           key-text="Company Number"
-          :value-text="result.best_match!.CompanyNumber"
+          :value-text="result.best_match.CompanyNumber"
         />
         <gv-summary-list-row key-text="Registered Address">
           <template #value>
-            <span v-html="formatAddress(result.best_match)"></span>
+            <CompanyAddress :company="result.best_match" />
           </template>
         </gv-summary-list-row>
       </template>
     </gv-summary-list>
 
-    <gv-button>View Company Organisation Chart</gv-button>
+    <gv-button @click="confirmSelection">View Company Organisation Chart</gv-button>
   </div>
 </template>
 

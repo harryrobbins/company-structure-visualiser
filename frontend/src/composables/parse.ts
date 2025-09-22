@@ -1,31 +1,10 @@
 import { Workbook, type Worksheet } from 'exceljs'
 import * as z from 'zod/mini'
 import type { Edge, Node } from '@vue-flow/core'
-import {useSearchStore} from "@/stores/search.ts";
-import {useGraphStore} from "@/stores/graph.ts";
-import type {CompanySearchRequest} from "@/api";
-
-export function useParse() {
-  const searchStore = useSearchStore()
-  const graphStore = useGraphStore()
-
-  async function parseFile(data: ArrayBuffer) {
-    const graph = await parseCompanyOwnershipWorkbook(data)
-    const requests = graph.nodes.map(node => node.data!.searchRequest)
-    const searchResults = await searchStore.searchCompany(requests)
-    graphStore.setGraph(graph)
-    graphStore.setCurrentSearch(searchResults)
-  }
-
-  function resetParse() {
-    graphStore.$reset()
-  }
-
-  return { parseFile, resetParse }
-}
+import {type CompanySearchRequest} from "@/api";
 
 export interface CompanyGraph {
-  nodes: Node<{ label: string, searchRequest: CompanySearchRequest }>[]
+  nodes: Node<{ label: string, meta: CompanySearchRequest['meta'] }>[]
   edges: Edge[]
 }
 
@@ -64,11 +43,7 @@ export async function parseCompanyOwnershipWorkbook(data: ArrayBuffer): Promise<
       id: company['Company Number'],
       data: {
         label: company['Company Name'],
-        searchRequest: {
-          company_name: company['Company Name'],
-          meta: {} // TODO: add metadata like jurisdiction, incorporation date, etc.
-        } as CompanySearchRequest,
-
+        meta: {} // TODO: add metadata like jurisdiction, incorporation date, etc.
       },
       position: { x: 0, y: 0 }
     })
