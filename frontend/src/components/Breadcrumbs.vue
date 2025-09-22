@@ -12,12 +12,12 @@ const confirmSearchResult = { text: 'Confirm search result', action: () => appSt
 
 const breadcrumbs = computed(() => {
   const breadcrumbs: Breadcrumb[] = [{ text: 'Upload file', action: () => appStore.$reset() }]
-  switch (appStore.graph.type) {
+  switch (appStore.state.type) {
     case "upload":
       break
     case "confirmation":
       breadcrumbs.push(confirmSearchResult)
-      if (appStore.graph.editing !== null) {
+      if (appStore.state.editing !== null) {
         breadcrumbs.push({ text: 'Edit search result' })
       }
       break
@@ -37,7 +37,7 @@ const breadcrumbs = computed(() => {
 </script>
 
 <template>
-  <gv-back-link v-if="appStore.graph.type === 'failed'" @click.prevent="appStore.$reset()">Upload another file</gv-back-link>
+  <gv-back-link v-if="appStore.state.type === 'failed'" @click.prevent="appStore.$reset()">Upload another file</gv-back-link>
   <gv-breadcrumbs v-else-if="breadcrumbs.length > 1">
     <template v-for="(breadcrumb, index) in breadcrumbs" :key="breadcrumb.text">
       <gv-breadcrumb-item v-if="breadcrumb.action && index < breadcrumbs.length - 1" @click.prevent="breadcrumb.action">

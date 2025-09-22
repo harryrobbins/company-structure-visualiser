@@ -20,7 +20,7 @@ watch(files, async () => {
 
 <template>
   <gv-file-upload
-    v-if="appStore.graph.type == 'upload'"
+    v-if="appStore.state.type == 'upload'"
     :disabled="appStore.loading"
     id="file-upload"
     label="Upload your company organization data"

@@ -1,5 +1,9 @@
 import { defineStore } from 'pinia'
-import {type CompanyGraph, parseCompanyOwnershipWorkbook} from '@/composables/parse.ts'
+import {
+  type EntityGraph, entitySearchRequest,
+  type GroupStructure, organisationGraph,
+  parseCompanyOwnershipWorkbook
+} from '@/composables/parse.ts'
 import {
   type CompanyMatch,
   type CompanySearchRequest,
@@ -7,82 +11,85 @@ import {
   searchCompanies
 } from "@/api";
 
-export interface UploadGraphState {
+export interface UploadState {
   type: 'upload'
 }
 
-export interface ConfirmationGraphState {
+export interface ConfirmationState {
   type: 'confirmation'
-  graph: CompanyGraph
+  structure: GroupStructure
   searchResults: CompanySearchResponseWithManualSelected[]
   editing: CompanySearchResponseWithManualSelected | null
 }
 
-export interface FailedGraphState {
+export interface FailedState {
   type: 'failed'
   message: string
 }
-const invalidAppState: FailedGraphState = Object.freeze({ type: 'failed', message: 'Invalid application state' })
+const invalidAppState: FailedState = Object.freeze({ type: 'failed', message: 'Invalid application state' })
 
-export interface VisualizeGraphState {
+export interface VisualizeState {
   type: 'visualize'
-  graph: CompanyGraph
+  structure: GroupStructure
+  graph: EntityGraph
   searchResults: CompanySearchResponseWithManualSelected[]
 }
 
 export interface AppState {
-  graph: UploadGraphState | ConfirmationGraphState | VisualizeGraphState | FailedGraphState,
+  state: UploadState | ConfirmationState | VisualizeState | FailedState,
   loading: boolean
 }
 
 export const useAppStore = defineStore('app', {
   state: (): AppState => {
     return {
-      graph: { type: 'upload' },
+      state: { type: 'upload' },
       loading: false
     }
   },
   actions: {
     async upload(file: File): Promise<void> {
-      if (this.graph.type !== 'upload') {
-        this.graph = invalidAppState
+      if (this.state.type !== 'upload') {
+        this.state = invalidAppState
         return
       }
 
       this.loading = true
       try {
         const data = await file.arrayBuffer()
-        const graph = await parseCompanyOwnershipWorkbook(data)
-        const requests: CompanySearchRequest[] = graph.nodes.map(node => {
-          const data = node.data!
-          return { company_name: data.label, meta: data.meta }
-        })
+        const structure = await parseCompanyOwnershipWorkbook(data)
+        const requests: CompanySearchRequest[] = structure.entities.map(entitySearchRequest)
         const searchResults = await searchCompanies(requests)
-        this.graph = { type: 'confirmation', graph, searchResults, editing: null }
+        this.state = { type: 'confirmation', structure, searchResults, editing: null }
       } catch (error) {
-        this.graph = { type: 'failed', message: error instanceof Error ? error.message : 'Unknown error' }
+        this.state = { type: 'failed', message: error instanceof Error ? error.message : 'Unknown error' }
       } finally {
         this.loading = false
       }
     },
     backToConfirmation() {
-      if (this.graph.type === 'confirmation' && this.graph.editing) {
-        this.graph.editing = null
-      } else if (this.graph.type === 'visualize') {
-        this.graph = { type: 'confirmation', graph: this.graph.graph, searchResults: this.graph.searchResults, editing: null }
+      if (this.state.type === 'confirmation' && this.state.editing) {
+        this.state.editing = null
+      } else if (this.state.type === 'visualize') {
+        this.state = {
+          type: 'confirmation',
+          structure: this.state.structure,
+          searchResults: this.state.searchResults,
+          editing: null
+        }
       } else {
-        this.graph = invalidAppState
+        this.state = invalidAppState
       }
     },
     updateMatch(selected: CompanyMatch) {
-      if (this.graph.type !== 'confirmation') {
-        this.graph = invalidAppState
+      if (this.state.type !== 'confirmation') {
+        this.state = invalidAppState
         return
       }
 
-      const editing = this.graph.editing
+      const editing = this.state.editing
       if (!editing) {
-        this.graph = invalidAppState
+        this.state = invalidAppState
         return
       }
 
@@ -91,7 +98,7 @@ export const useAppStore = defineStore('app', {
         match.CompanyNumber === selected.CompanyNumber
       )
       if (selectedIndex === -1) {
-        this.graph = invalidAppState
+        this.state = invalidAppState
         return
       }
 
@@ -117,15 +124,16 @@ export const useAppStore = defineStore('app', {
         }
       }
 
-      this.graph.editing = null
+      this.state.editing = null
     },
     confirm() {
-      switch (this.graph.type) {
+      switch (this.state.type) {
         case 'confirmation':
-          this.graph = {
+          this.state = {
             type: 'visualize',
-            graph: updatedGraph(this.graph),
-            searchResults: this.graph.searchResults
+            structure: this.state.structure,
+            searchResults: this.state.searchResults,
+            graph: updatedGraph(this.state),
           }
           break
         case 'visualize':
@@ -133,29 +141,22 @@ export const useAppStore = defineStore('app', {
           break
         case 'upload':
         case 'failed':
-          this.graph = invalidAppState
+          this.state = invalidAppState
           break
       }
     },
   },
 })
 
-function updatedGraph({ graph, searchResults }: ConfirmationGraphState): CompanyGraph {
-  return {
-    ...graph,
-    nodes: graph.nodes.map(node => {
-      if (node.data) {
-        const result = searchResults.find(r => r.search_string === node.data!.search_string)
-        if (!result || !result.best_match) {
-          return node
-        }
-        return {
-          ...node,
-          data: { ...node.data, label: result.best_match.CompanyName }
-        }
-      } else {
-        return node
-      }
-    })
-  }
+function updatedGraph({ structure, searchResults }: ConfirmationState): EntityGraph {
+  const fixedEntities = structure.entities.map(entity => {
+    const searchString = entitySearchRequest(entity).company_name
+    const result = searchResults.find(r => r.search_string === searchString)
+    return result?.best_match ? { ...entity, name: result.best_match.CompanyName } : entity;
+  })
+
+  return organisationGraph({
+    entities: fixedEntities,
+    relationships: structure.relationships
+  })
 }

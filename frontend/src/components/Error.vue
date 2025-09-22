@@ -6,9 +6,9 @@ const appStore = useAppStore()
 </script>
 
 <template>
-  <gv-error-summary v-if="appStore.graph.type == 'failed'" :disable-auto-focus="true">
+  <gv-error-summary v-if="appStore.state.type == 'failed'" :disable-auto-focus="true">
     <gv-error-link target-id="file-upload">
-      {{ appStore.graph.message }}
+      {{ appStore.state.message }}
     </gv-error-link>
   </gv-error-summary>
 </template>

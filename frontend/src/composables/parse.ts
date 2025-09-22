@@ -1,85 +1,108 @@
 import { Workbook, type Worksheet } from 'exceljs'
 import * as z from 'zod/mini'
 import type { Edge, Node } from '@vue-flow/core'
-import {type CompanySearchRequest} from "@/api";
+import type {CompanySearchRequest} from "@/api"
 
-export interface CompanyGraph {
-  nodes: Node<{ label: string, search_string: string, meta: CompanySearchRequest['meta'] }>[]
-  edges: Edge[]
+export interface EntityGraph {
+  nodes: Node<{ label: string, entity: Entity }>[]
+  edges: Edge<{ relationship: EntityRelationship }>[]
 }
 
-const CompanyRow = z.object({
-  'Company Number': z.coerce.string(),
-  'Company Name': z.string()
-})
 
-const OwnershipRow = z.object({
-  'Owner': z.string(),
-  'Owns': z.string(),
+const EntityRow = z.object({
+  'Tax Jurisdiction': z.string(),
+  'Constituent Entities Resident in Tax Jurisdiction': z.string(),
+  'Constituent Entities TIN': z.coerce.string(),
+  'Tax Jurisdiction of Incorporation if Different from Residence': z.optional(z.string()),
+  'Entity type': z.enum(['Company', 'Company Hybrid', 'Partnership', 'Partnership Hybrid', 'Branch', 'Trust']),
+})
+export type EntityType = z.infer<typeof EntityRow>['Entity type']
+
+export interface Entity {
+  id: string
+  type: EntityType
+  name: string
+  tin: string
+  taxJurisdiction: string
+  taxJurisdictionOfIncorporation: string
+}
+
+export function entitySearchRequest(entity: Entity): CompanySearchRequest {
+  return {
+    company_name: entity.name,
+    meta: {
+      'Entity type': entity.type,
+      'Constituent Entities TIN': entity.tin,
+      'Tax Jurisdiction': entity.taxJurisdiction,
+      'Tax Jurisdiction of Incorporation': entity.taxJurisdictionOfIncorporation,
+    },
+  }
+}
+
+function cleanUpEntity(entity: z.infer<typeof EntityRow>): Entity {
+  const name = entity['Constituent Entities Resident in Tax Jurisdiction'].trim()
+  const tin = entity['Constituent Entities TIN'].trim()
+  const taxJurisdiction = entity['Tax Jurisdiction'].trim()
+  return {
+    id: tin || name,
+    type: entity['Entity type'],
+    name,
+    tin,
+    taxJurisdiction,
+    taxJurisdictionOfIncorporation: entity['Tax Jurisdiction of Incorporation if Different from Residence']?.trim() || taxJurisdiction,
+  }
+}
+
+const RelationshipRow = z.object({
+  'Parent name or TIN': z.string(),
+  'Child name or TIN': z.string(),
   'Percentage Ownership': z.number().check(z.minimum(0)).check(z.maximum(100))
 })
 
-export async function parseCompanyOwnershipWorkbook(data: ArrayBuffer): Promise<CompanyGraph> {
-  const workbook = new Workbook();
-  try {
-    await workbook.xlsx.load(data)
-  } catch (e) {
-    console.error(e)
-    throw new Error('Failed to read Excel file. Ensure it is a valid .xlsx file.')
+export interface EntityRelationship {
+  parent: string
+  child: string
+  percentageOwnership: number
+}
+
+function cleanUpRelationship(ownership: z.infer<typeof RelationshipRow>): EntityRelationship {
+  let percentageOwnership = ownership['Percentage Ownership']
+  if (percentageOwnership <= 1) {
+    percentageOwnership = percentageOwnership * 100
   }
-
-  const companiesSheet = workbook.getWorksheet('Companies');
-  const ownershipSheet = workbook.getWorksheet('Ownership');
-
-  if (!companiesSheet || !ownershipSheet) {
-    throw new Error('Spreadsheet must contain "Companies" and "Ownership" sheets.')
+  return {
+    parent: ownership['Parent name or TIN'].trim(),
+    child: ownership['Child name or TIN'].trim(),
+    percentageOwnership,
   }
+}
 
-  const result: CompanyGraph = { nodes: [], edges: [] }
+export interface GroupStructure {
+  entities: Entity[]
+  relationships: EntityRelationship[]
+}
 
-  const companies = toJson(companiesSheet, CompanyRow)
-  for (const company of companies) {
-    result.nodes.push({
-      id: company['Company Number'],
-      data: {
-        label: company['Company Name'],
-        search_string: company['Company Name'],
-        meta: {} // TODO: add metadata like jurisdiction, incorporation date, etc.
-      },
+export function organisationGraph({ entities, relationships }: GroupStructure): EntityGraph {
+  const graph: EntityGraph = {
+    nodes: entities.map(entity => ({
+      id: entity.id,
+      data: { label: entity.name, entity },
       position: { x: 0, y: 0 }
-    })
-  }
-
-  function findCompanyNumberByName(name: string): string {
-    const companyNumber =  companies.find(c => c['Company Name'] === name)?.['Company Number']
-    if (!companyNumber) {
-      throw new Error(`Company not found: ${name}`)
-    }
-    return companyNumber
-  }
-
-  const ownerships = toJson(ownershipSheet, OwnershipRow)
-  result.edges = ownerships.map((ownership) => {
-    const target = findCompanyNumberByName(ownership.Owns)
-    const source = findCompanyNumberByName(ownership.Owner)
-
-    if (source === target) {
-      throw new Error(`Invalid ownership: company ${ownership.Owner} (${source}) cannot own itself.`)
-    }
-
-    return {
-      id: `${source}->${target}`,
-      source,
-      target,
-      label: `${ownership['Percentage Ownership']}%`,
+    })),
+    edges: relationships.map((relationship) => ({
+      id: `${relationship.parent}->${relationship.child}`,
+      source: relationship.parent,
+      target: relationship.child,
+      label: `${relationship.percentageOwnership}%`,
       markerEnd: 'arrowclosed',
-    }
-  })
+      data: { relationship }
+    }))
+  }
 
   // Set node types based on their role in the graph
-  for (const node of result.nodes) {
-    const isSource = result.edges.some(edge => edge.source === node.id)
-    const isTarget = result.edges.some(edge => edge.target === node.id)
+  for (const node of graph.nodes) {
+    const isSource = graph.edges.some(edge => edge.source === node.id)
+    const isTarget = graph.edges.some(edge => edge.target === node.id)
 
     if (isSource && !isTarget) {
       node.type = 'input'
@@ -90,20 +113,75 @@ export async function parseCompanyOwnershipWorkbook(data: ArrayBuffer): Promise<
     }
   }
 
-  return result
+  return graph
+}
+
+export async function parseCompanyOwnershipWorkbook(data: ArrayBuffer): Promise<GroupStructure> {
+  const workbook = new Workbook();
+  try {
+    await workbook.xlsx.load(data)
+  } catch (e) {
+    console.error(e)
+    throw new Error('Failed to read Excel file. Ensure it is a valid .xlsx file.')
+  }
+
+  const entitySheet = workbook.getWorksheet('Entities') || workbook.worksheets[0]
+  if (!entitySheet) {
+    throw new Error('Workbook does not contain an entity worksheet.')
+  }
+  const entities = toJson(workbook.worksheets[0], EntityRow).map(cleanUpEntity)
+
+  const relationshipSheet = workbook.getWorksheet('Relationships') || workbook.worksheets[1]
+  if (!relationshipSheet) {
+    throw new Error('Workbook does not contain a relationship worksheet.')
+  }
+
+  function findEntity(nameOrTIN: string): Entity {
+    const entity = entities.find(entity => entity.tin === nameOrTIN || entity.name === nameOrTIN)
+    if (!entity) {
+      throw new Error(`Entity not found: ${nameOrTIN}`)
+    }
+    return entity
+  }
+
+  const relationships = toJson(workbook.worksheets[1], RelationshipRow)
+    .map(cleanUpRelationship)
+    .map(relationship => {
+      // normalize to use entity IDs
+      relationship.parent = findEntity(relationship.parent).id
+      relationship.child = findEntity(relationship.child).id
+      if (relationship.parent === relationship.child) {
+        throw new Error(`Invalid relationship: entity ${relationship.parent} cannot own itself.`)
+      }
+      return relationship
+    })
+
+  return { entities, relationships }
 }
 
 function toJson<Z extends z.ZodMiniObject, T = z.infer<Z>>(sheet: Worksheet, schema: Z): T[] {
   if (sheet.rowCount <= 1) return []
-  const headerRow = sheet.getRow(1).values as string[]
+
+  // find table header
+  let headerRowNumber = 0
+  const allHeaders = new Set(Object.keys(schema.shape))
+  sheet.eachRow((row, rowNumber) => {
+    if (headerRowNumber > 0) return // already found
+    const firstCell = row.getCell(1).value?.toString()?.trim()
+    if (firstCell && allHeaders.has(firstCell)) {
+      headerRowNumber = rowNumber
+    }
+  })
+
+  const headerRow = sheet.getRow(headerRowNumber).values as string[]
   const result: T[] = []
 
   sheet.eachRow((row, rowNumber) => {
-    if (rowNumber === 1) return // skip header row
+    if (rowNumber <= headerRowNumber) return // skip header row
     const rowData: Partial<T> = {}
     row.eachCell((cell, colNumber) => {
       const header = headerRow[colNumber] as keyof T
-      rowData[header] = cell.value as T[keyof T]
+      rowData[header] = (cell.result ?? cell.value) as T[keyof T]
     })
 
     const { data, error, success } = schema.safeParse(rowData)

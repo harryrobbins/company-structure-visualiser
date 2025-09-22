@@ -9,19 +9,19 @@ const appStore = useAppStore()
 </script>
 
 <template>
-  <div v-if="appStore.graph.type == 'confirmation'">
-    <template v-if="appStore.graph.editing">
+  <div v-if="appStore.state.type == 'confirmation'">
+    <template v-if="appStore.state.editing">
       <EditSearchResult
-        :company="appStore.graph.editing"
+        :company="appStore.state.editing"
         :onSelectCompany="appStore.updateMatch"
       />
-      <gv-button @click="appStore.graph.editing = null">Confirm search result</gv-button>
+      <gv-button @click="appStore.state.editing = null">Confirm search result</gv-button>
     </template>
     <template v-else>
       <div class="govuk-heading-xl">Matched Companies</div>
 
       <p class="govuk-body">
-        We found {{ appStore.graph.searchResults.length }} companies in the supplied spreadsheet.
+        We found {{ appStore.state.searchResults.length }} companies in the supplied spreadsheet.
       </p>
 
       <p class="govuk-body">
@@ -35,7 +35,7 @@ const appStore = useAppStore()
       </p>
 
       <gv-summary-list
-        v-for="(result, index) in appStore.graph.searchResults"
+        v-for="(result, index) in appStore.state.searchResults"
         :key="index"
       >
         <template #card-title>
@@ -45,7 +45,7 @@ const appStore = useAppStore()
 
         <template #card-actions>
           <gv-summary-card-action
-            @click.prevent="appStore.graph.editing = result"
+            @click.prevent="appStore.state.editing = result"
             :visually-hidden-text="`match for ${result.search_string}`"
           >
             Edit

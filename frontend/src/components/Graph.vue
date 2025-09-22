@@ -11,19 +11,19 @@ const { layout } = useLayout()
 const { fitView } = useVueFlow()
 
 async function layoutGraph() {
-  if (appStore.graph.type == 'visualize') {
-    appStore.graph.graph.nodes = layout(appStore.graph.graph)
+  if (appStore.state.type == 'visualize') {
+    appStore.state.graph.nodes = layout(appStore.state.graph)
     return nextTick(() => fitView())
   }
 }
 </script>
 
 <template>
-  <section class="h-200" v-if="appStore.graph.type == 'visualize'">
+  <section class="h-200" v-if="appStore.state.type == 'visualize'">
     <VueFlow
-      v-if="appStore.graph.graph"
-      :nodes="appStore.graph.graph?.nodes"
-      :edges="appStore.graph.graph?.edges"
+      v-if="appStore.state.graph"
+      :nodes="appStore.state.graph?.nodes"
+      :edges="appStore.state.graph?.edges"
       fit-view-on-init
       @nodes-initialized="layoutGraph"
     >
