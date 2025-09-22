@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import CompanyChart from '@/components/CompanyChart.vue'
+import Graph from '@/components/Graph.vue'
 import FileUpload from '@/components/FileUpload.vue'
 import SearchConfirmation from "@/components/SearchConfirmation.vue";
 import Error from "@/components/Error.vue";
-import Reset from "@/components/Reset.vue";
+import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import Loading from "@/components/Loading.vue";
 </script>
 
@@ -11,12 +11,12 @@ import Loading from "@/components/Loading.vue";
   <gv-header :rebrand="true" />
   <gv-service-navigation service-name="Company Visualizer" service-url="/example-page" />
   <main class="container mx-auto p-4">
-    <Reset />
+    <Breadcrumbs />
     <Error />
     <FileUpload />
     <Loading />
     <SearchConfirmation />
-    <CompanyChart />
+    <Graph />
   </main>
   <gv-footer :rebrand="true" />
 </template>

@@ -57,7 +57,7 @@ async def perform_company_search(search_term: str) -> List[CompanyMatch]:
     return [
         CompanyMatch(
             company_name=search_term,
-            company_number="12345678",
+            company_number="11111111",
             regaddress_addressline1="123 Business Street",
             regaddress_posttown="London",
             regaddress_country="England",
@@ -68,6 +68,34 @@ async def perform_company_search(search_term: str) -> List[CompanyMatch]:
             incorporation_date="2020-01-15",
             siccode_sictext_1="Computer programming activities",
             score=0.95
+        ),
+        CompanyMatch(
+            company_name="Another " + search_term,
+            company_number="22222222",
+            regaddress_addressline1="456 Commerce Ave",
+            regaddress_posttown="London",
+            regaddress_country="England",
+            regaddress_postcode="EC1A 1BB",
+            company_category="Private Limited Company",
+            company_status="Active",
+            country_of_origin="United Kingdom",
+            incorporation_date="2020-01-15",
+            siccode_sictext_1="Computer programming activities",
+            score=0.79
+        ),
+        CompanyMatch(
+            company_name="Yet Another " + search_term,
+            company_number="33333333",
+            regaddress_addressline1="789 Enterprise Rd",
+            regaddress_posttown="London",
+            regaddress_country="England",
+            regaddress_postcode="E1 6AN",
+            company_category="Private Limited Company",
+            company_status="Active",
+            country_of_origin="United Kingdom",
+            incorporation_date="2020-01-15",
+            siccode_sictext_1="Computer programming activities",
+            score=0.49
         )
     ]
 

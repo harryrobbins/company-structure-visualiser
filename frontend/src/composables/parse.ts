@@ -4,7 +4,7 @@ import type { Edge, Node } from '@vue-flow/core'
 import {type CompanySearchRequest} from "@/api";
 
 export interface CompanyGraph {
-  nodes: Node<{ label: string, meta: CompanySearchRequest['meta'] }>[]
+  nodes: Node<{ label: string, search_string: string, meta: CompanySearchRequest['meta'] }>[]
   edges: Edge[]
 }
 
@@ -43,6 +43,7 @@ export async function parseCompanyOwnershipWorkbook(data: ArrayBuffer): Promise<
       id: company['Company Number'],
       data: {
         label: company['Company Name'],
+        search_string: company['Company Name'],
         meta: {} // TODO: add metadata like jurisdiction, incorporation date, etc.
       },
       position: { x: 0, y: 0 }
