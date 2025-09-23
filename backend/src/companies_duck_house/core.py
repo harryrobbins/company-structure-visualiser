@@ -14,7 +14,7 @@ from rich.progress import (
 )
 
 from .models import Company, PYDANTIC_TO_DUCKDB
-from src.config import settings
+from config import settings
 
 
 class CompaniesHouseDB:

@@ -10,18 +10,22 @@ from fastapi.templating import Jinja2Templates
 from jinja2 import Environment, FileSystemLoader
 
 # Import the new router
-from src.api.routers.companies import router as companies_api_router
-from src.api.routers.llm import router as llm_api_router
-from src.companies_duck_house.core import CompaniesHouseDB
-from src.config import settings
+from api.routers.companies import router as companies_api_router
+from api.routers.llm import router as llm_api_router
+from companies_duck_house.core import CompaniesHouseDB
+from config import settings
 import os
 
+# Get the directory where this script is located
+BASE_DIR = Path(__file__).parent.parent.parent
+TEMPLATES_DIR = BASE_DIR / "templates"
+STATIC_DIR = BASE_DIR / "static"
 
 def run_startup_logic():
-    db_dir = Path(settings.db_dir)
+    db_dir = Path(BASE_DIR / settings.db_dir)
     db_dir.mkdir(exist_ok=True)
 
-    db_path = Path(settings.db_path)
+    db_path = Path(BASE_DIR / settings.db_path)
     db = CompaniesHouseDB(db_path=str(db_path))
 
     with db:
@@ -30,7 +34,8 @@ def run_startup_logic():
                 print("`force_recreate_db` is true, rebuilding database...")
             else:
                 print(f"Table 'companies' not found in {db_path}, creating it...")
-            db.create_database_from_source(source=settings.data_source)
+            data_source = str(BASE_DIR / settings.data_source)
+            db.create_database_from_source(source=data_source)
         else:
             print(f"Table 'companies' already exists in {db_path}, skipping creation.")
 
@@ -56,9 +61,8 @@ env = Environment(
 templates = Jinja2Templates(env=env)
 # --- End of FIX ---
 
-
 # Mount the 'static' directory to serve files like JS, CSS, and images
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 # Path to the Vite manifest file. Adjusted path to match your tree.
 VITE_MANIFEST_PATH = Path("static/assets/dist/.vite/manifest.json")

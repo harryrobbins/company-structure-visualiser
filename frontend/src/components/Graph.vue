@@ -5,10 +5,11 @@ import { VueFlow } from '@vue-flow/core'
 import { Controls } from '@vue-flow/controls';
 import { useAppStore } from '@/stores/app.ts'
 import { useLayout } from '@/composables/useLayout.ts'
+import EntityNode from "@/components/EntityNode.vue";
 
 const appStore = useAppStore()
 const { layout } = useLayout()
-const { fitView } = useVueFlow()
+const { fitView, vueFlowRef } = useVueFlow()
 
 async function layoutGraph() {
   if (appStore.state.type == 'visualize') {
@@ -28,6 +29,10 @@ async function layoutGraph() {
       @nodes-initialized="layoutGraph"
     >
       <Controls position="top-right" />
+
+      <template #node-company="props">
+        <EntityNode :id="props.id" :data="props.data" />
+      </template>
     </VueFlow>
   </section>
 </template>

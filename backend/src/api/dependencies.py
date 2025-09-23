@@ -5,8 +5,8 @@ the initial creation of the database if it does not exist.
 """
 
 import os
-from src.companies_duck_house.core import CompaniesHouseDB
-from src.config import settings  # Import the centralized settings
+from companies_duck_house.core import CompaniesHouseDB
+from config import settings  # Import the centralized settings
 
 db_instance: CompaniesHouseDB | None = None
 

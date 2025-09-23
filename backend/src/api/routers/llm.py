@@ -5,10 +5,10 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from openai import APIConnectionError, RateLimitError, APIStatusError
 
-from src.api import llm_interface
-from src.api.models import ImageExtractionRequest, TextExtractionResponse
-from src.api.llm_client import LLMClientDep, get_llm_client
-from src.api.errors import AppError
+from api import llm_interface
+from api.models import ImageExtractionRequest, TextExtractionResponse
+from api.llm_client import LLMClientDep, get_llm_client
+from api.errors import AppError
 
 # Get a logger instance. The duplicate basicConfig and logger definitions are removed.
 logger = logging.getLogger(__name__)

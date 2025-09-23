@@ -8,11 +8,11 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from openai import AsyncOpenAI, AsyncAzureOpenAI
 
-from src.companies_duck_house.core import CompaniesHouseDB
-from src.api.dependencies import get_db
-from src.api.models import CompanyMatchRequest, CompanyMatchResponse, CompanyMatch
-from src.api.llm_client import LLMClientDep
-from src.api.llm_interface import recommend_best_match
+from companies_duck_house.core import CompaniesHouseDB
+from api.dependencies import get_db
+from api.models import CompanyMatchRequest, CompanyMatchResponse, CompanyMatch
+from api.llm_client import LLMClientDep
+from api.llm_interface import recommend_best_match
 
 logger = logging.getLogger(__name__)
 

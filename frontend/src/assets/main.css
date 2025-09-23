@@ -3,4 +3,4 @@
 @import '@vue-flow/core/dist/theme-default.css';
 @import '@vue-flow/controls/dist/style.css';
 @import 'govuk-frontend/dist/govuk/govuk-frontend.min.css';
-
+@import 'flag-icons/css/flag-icons.min.css';

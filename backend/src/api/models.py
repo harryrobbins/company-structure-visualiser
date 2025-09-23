@@ -1,7 +1,7 @@
 # api/models.py
 from typing import List, Dict, Optional
 from pydantic import BaseModel, Field
-from src.companies_duck_house.models import Company
+from companies_duck_house.models import Company
 
 
 class CompanyMatchRequest(BaseModel):

@@ -6,7 +6,7 @@ from typing import AsyncGenerator
 import openai
 from fastapi import Depends
 
-from src.config import settings
+from config import settings
 from .errors import AppError
 
 # Get a logger instance. Note: No basicConfig here.

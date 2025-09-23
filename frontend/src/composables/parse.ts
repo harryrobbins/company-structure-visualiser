@@ -1,10 +1,15 @@
-import { Workbook, type Worksheet } from 'exceljs'
+import {Workbook, type Worksheet} from 'exceljs'
 import * as z from 'zod/mini'
-import type { Edge, Node } from '@vue-flow/core'
+import type {Edge, Node} from '@vue-flow/core'
 import type {CompanySearchRequest} from "@/api"
 
+export interface NodeData {
+  label: string
+  entity: Entity
+}
+
 export interface EntityGraph {
-  nodes: Node<{ label: string, entity: Entity }>[]
+  nodes: Node<NodeData>[]
   edges: Edge<{ relationship: EntityRelationship }>[]
 }
 
@@ -83,11 +88,12 @@ export interface GroupStructure {
 }
 
 export function organisationGraph({ entities, relationships }: GroupStructure): EntityGraph {
-  const graph: EntityGraph = {
+  return {
     nodes: entities.map(entity => ({
       id: entity.id,
-      data: { label: entity.name, entity },
-      position: { x: 0, y: 0 }
+      data: {label: entity.name, entity},
+      position: {x: 0, y: 0},
+      type: 'company'
     })),
     edges: relationships.map((relationship) => ({
       id: `${relationship.parent}->${relationship.child}`,
@@ -95,25 +101,9 @@ export function organisationGraph({ entities, relationships }: GroupStructure): 
       target: relationship.child,
       label: `${relationship.percentageOwnership}%`,
       markerEnd: 'arrowclosed',
-      data: { relationship }
+      data: {relationship}
     }))
   }
-
-  // Set node types based on their role in the graph
-  for (const node of graph.nodes) {
-    const isSource = graph.edges.some(edge => edge.source === node.id)
-    const isTarget = graph.edges.some(edge => edge.target === node.id)
-
-    if (isSource && !isTarget) {
-      node.type = 'input'
-    } else if (!isSource && isTarget) {
-      node.type = 'output'
-    } else {
-      node.type = 'default'
-    }
-  }
-
-  return graph
 }
 
 export async function parseCompanyOwnershipWorkbook(data: ArrayBuffer): Promise<GroupStructure> {

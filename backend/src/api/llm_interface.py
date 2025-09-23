@@ -5,7 +5,7 @@ import logging
 from openai import AsyncOpenAI, AsyncAzureOpenAI
 from . import prompts
 from .llm_client import get_model_name
-from src.companies_duck_house.models import Company
+from companies_duck_house.models import Company
 
 logger = logging.getLogger(__name__)
 
