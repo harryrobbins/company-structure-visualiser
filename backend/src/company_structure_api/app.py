@@ -54,7 +54,7 @@ app = FastAPI(lifespan=lifespan)
 # Instead, you pass the configuration arguments for the Jinja2 Environment directly to its constructor.
 # It will automatically create the FileSystemLoader with the provided directory.
 env = Environment(
-    loader=FileSystemLoader("templates"),
+    loader=FileSystemLoader(str(TEMPLATES_DIR)),
     variable_start_string="[[",
     variable_end_string="]]",
 )

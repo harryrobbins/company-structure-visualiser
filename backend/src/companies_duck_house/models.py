@@ -74,32 +74,3 @@ PYDANTIC_TO_DUCKDB = {
     float: 'DOUBLE',
     bool: 'BOOLEAN'
 }
-
-class CompanySearchRequest(BaseModel):
-    company_name: str = Field(description="Name of the company to search for")
-    meta: Optional[Dict[str, str]] = Field(
-        default=None,
-        description="Optional metadata object that can contain any key-value pairs"
-    )
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        extra='ignore'
-    )
-
-class CompanyMatch(Company):
-    score: float = Field(description="Relevance score of the match")
-    model_config = ConfigDict(
-        populate_by_name=True,
-        extra='ignore'
-    )
-
-class CompanySearchResponse(BaseModel):
-    search_string: str = Field(description="The original search string")
-    best_match: Optional[CompanyMatch] = Field(description="Best matching company with relevance score")
-    other_matches: list[CompanyMatch] = Field(description="List of matching companies with relevance scores")
-    model_config = ConfigDict(
-        populate_by_name=True,
-        extra='ignore'
-    )
-
