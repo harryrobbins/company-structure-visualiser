@@ -37,5 +37,17 @@ async function layoutGraph() {
   </section>
 </template>
 
-<style scoped></style>
+<style>
+
+.vue-flow__edge-textbg {
+  fill: white;
+  stroke: #000;
+  stroke-width: 1px;
+}
+
+.vue-flow__edge-text {
+  fill: #000;
+}
+
+</style>
 

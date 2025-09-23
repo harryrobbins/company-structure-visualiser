@@ -99,9 +99,10 @@ export function organisationGraph({ entities, relationships }: GroupStructure): 
       id: `${relationship.parent}->${relationship.child}`,
       source: relationship.parent,
       target: relationship.child,
-      label: `${relationship.percentageOwnership}%`,
+      label: `${relationship.percentageOwnership.toFixed(0)}%`,
       markerEnd: 'arrowclosed',
-      data: {relationship}
+      data: {relationship},
+      type: 'straight',
     }))
   }
 }
