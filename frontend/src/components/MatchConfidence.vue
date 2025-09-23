@@ -19,7 +19,7 @@ const confidenceOption = computed(() => {
   }
 
   const score = props.match.score
-  if (score >= 8) {
+  if (score >= 7) {
     return { confidence: 'High Confidence', colour: 'green' }
   } else if (score >= 3) {
     return { confidence: 'Medium Confidence', colour: 'yellow' }

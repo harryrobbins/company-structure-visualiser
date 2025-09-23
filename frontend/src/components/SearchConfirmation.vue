@@ -3,8 +3,30 @@ import {useAppStore} from '@/stores/app.ts'
 import MatchConfidence from "@/components/MatchConfidence.vue";
 import Address from "@/components/Address.vue";
 import EditSearchResult from "@/components/EditSearchResult.vue";
+import type {CompanyMatch} from "@/api";
 
 const appStore = useAppStore()
+
+function scrollToTop() {
+  window.scroll({ top: 0, behavior: 'smooth' })
+}
+
+function edit(key: string | null) {
+  if (appStore.state.type === 'confirmation') {
+    appStore.state.editing = key
+    scrollToTop()
+  }
+}
+
+function updateMatch(selected: CompanyMatch) {
+  appStore.updateMatch(selected)
+  scrollToTop()
+}
+
+function confirm() {
+  appStore.confirm()
+  scrollToTop()
+}
 
 </script>
 
@@ -14,9 +36,9 @@ const appStore = useAppStore()
       <EditSearchResult
         :search-string="appStore.state.editing"
         :company="appStore.state.matches[appStore.state.editing]"
-        :onSelectCompany="appStore.updateMatch"
+        :onSelectCompany="updateMatch"
       />
-      <gv-button @click="appStore.state.editing = null">Confirm search result</gv-button>
+      <gv-button @click="edit(null)">Confirm search result</gv-button>
     </template>
     <template v-else>
       <div class="govuk-heading-xl">Matched Companies</div>
@@ -46,7 +68,7 @@ const appStore = useAppStore()
 
         <template #card-actions>
           <gv-summary-card-action
-            @click.prevent="appStore.state.editing = key"
+            @click="edit(key)"
             :visually-hidden-text="`match for ${key}`"
           >
             Edit
@@ -70,7 +92,7 @@ const appStore = useAppStore()
         </template>
       </gv-summary-list>
 
-      <gv-button @click="appStore.confirm()">View Company Organisation Chart</gv-button>
+      <gv-button @click="confirm">View Company Organisation Chart</gv-button>
     </template>
   </div>
 </template>

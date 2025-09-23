@@ -145,7 +145,7 @@ switch (props.data.entity.type) {
 
   p {
     position: absolute;
-    bottom: 25%; /* where the triangle is widest */
+    bottom: 10%; /* where the triangle is widest */
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
