@@ -1,7 +1,6 @@
 import {Workbook, type Worksheet} from 'exceljs'
 import * as z from 'zod/mini'
 import type {Edge, Node} from '@vue-flow/core'
-import type {CompanySearchRequest} from "@/api"
 
 export interface NodeData {
   label: string
@@ -30,18 +29,6 @@ export interface Entity {
   tin: string
   taxJurisdiction: string
   taxJurisdictionOfIncorporation: string
-}
-
-export function entitySearchRequest(entity: Entity): CompanySearchRequest {
-  return {
-    company_name: entity.name,
-    meta: {
-      'Entity type': entity.type,
-      'Constituent Entities TIN': entity.tin,
-      'Tax Jurisdiction': entity.taxJurisdiction,
-      'Tax Jurisdiction of Incorporation': entity.taxJurisdictionOfIncorporation,
-    },
-  }
 }
 
 function cleanUpEntity(entity: z.infer<typeof EntityRow>): Entity {
@@ -85,26 +72,6 @@ function cleanUpRelationship(ownership: z.infer<typeof RelationshipRow>): Entity
 export interface GroupStructure {
   entities: Entity[]
   relationships: EntityRelationship[]
-}
-
-export function organisationGraph({ entities, relationships }: GroupStructure): EntityGraph {
-  return {
-    nodes: entities.map(entity => ({
-      id: entity.id,
-      data: {label: entity.name, entity},
-      position: {x: 0, y: 0},
-      type: 'company'
-    })),
-    edges: relationships.map((relationship) => ({
-      id: `${relationship.parent}->${relationship.child}`,
-      source: relationship.parent,
-      target: relationship.child,
-      label: `${relationship.percentageOwnership.toFixed(0)}%`,
-      markerEnd: 'arrowclosed',
-      data: {relationship},
-      type: 'straight',
-    }))
-  }
 }
 
 export async function parseCompanyOwnershipWorkbook(data: ArrayBuffer): Promise<GroupStructure> {

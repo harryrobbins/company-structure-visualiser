@@ -10,7 +10,7 @@ from openai import AsyncOpenAI, AsyncAzureOpenAI
 
 from companies_duck_house.core import CompaniesHouseDB
 from api.dependencies import get_db
-from api.models import CompanyMatchRequest, CompanyMatchResponse, CompanyMatch
+from api.models import CompanyMatchRequest, CompanyMatchResponse, CompanyMatchResult
 from api.llm_client import LLMClientDep
 from api.llm_interface import recommend_best_match
 
@@ -44,7 +44,7 @@ async def match_companies(
             matches = db.search_companies_by_name(name, limit=5)
 
             if not matches:
-                results[name] = CompanyMatch(recommended_match=None, other_matches=[])
+                results[name] = CompanyMatchResult(recommended_match=None, other_matches=[])
                 continue
 
             recommended_company_number = await recommend_best_match(
@@ -67,7 +67,7 @@ async def match_companies(
                 # if LLM fails or returns invalid number, return all as other_matches
                 other_matches = matches
 
-            results[name] = CompanyMatch(
+            results[name] = CompanyMatchResult(
                 recommended_match=recommended_match,
                 other_matches=other_matches
             )

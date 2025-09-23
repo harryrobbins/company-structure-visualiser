@@ -13,6 +13,7 @@ from rich.progress import (
     TransferSpeedColumn,
 )
 
+from api.models import CompanyMatch
 from .models import Company, PYDANTIC_TO_DUCKDB
 from config import settings
 
@@ -144,13 +145,7 @@ class CompaniesHouseDB:
             zip_ref.extract(file_to_extract, extract_dir)
             return extract_dir / file_to_extract
 
-    def execute_sql(self, query: str, params: list = None) -> list[Company]:
-        if not self.con:
-            raise ConnectionError("Database is not connected.")
-        result_py_list = self.con.execute(query, params).fetch_arrow_table().to_pylist()
-        return [Company.model_validate(row) for row in result_py_list]
-
-    def search_companies_by_name(self, name_fragment: str, limit: int = 10) -> list[Company]:
+    def search_companies_by_name(self, name_fragment: str, limit: int = 10) -> list[CompanyMatch]:
         """Performs a full-text search on the company_name column."""
         if not self.con:
             raise ConnectionError("Database is not connected.")
@@ -172,12 +167,13 @@ class CompaniesHouseDB:
             ORDER BY score DESC
             LIMIT ?;
         """
-        return self.execute_sql(query, [name_fragment, limit])
+        results = self.con.execute(query, [name_fragment, limit]).fetch_arrow_table().to_pylist()
+        return [CompanyMatch.model_validate(row) for row in results]
 
     def get_company_by_number(self, company_number: str) -> Optional[Company]:
         """Retrieves a single company by its exact company number."""
         if not self.con:
             raise ConnectionError("Database is not connected.")
         query = f"SELECT * FROM {self.COMPANIES_TABLE_NAME} WHERE company_number = ?;"
-        results = self.execute_sql(query, [company_number])
-        return results[0] if results else None
+        results = self.con.execute(query, [company_number]).fetch_arrow_table().to_pylist()
+        return Company.model_validate(results[0]) if results else None

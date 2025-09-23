@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import type {CompanyMatch, CompanySearchResponse} from "@/api";
+import type {CompanyMatch, CompanyMatchResponse, CompanyMatchResult} from "@/api";
 import Address from "@/components/Address.vue";
 import MatchConfidence from "@/components/MatchConfidence.vue";
 
 interface Props {
-  company: CompanySearchResponse
+  searchString: string;
+  company: CompanyMatchResult
   onSelectCompany: (selected: CompanyMatch) => void;
 }
 
@@ -12,20 +13,20 @@ const props = defineProps<Props>();
 </script>
 
 <template>
-  <div class="govuk-heading-xl">Edit Match '{{props.company.search_string}}'</div>
+  <div class="govuk-heading-xl">Edit Match '{{searchString}}'</div>
 
-  <gv-summary-list v-if="props.company.best_match" card-title="Current Best Match">
+  <gv-summary-list v-if="props.company.recommended_match" card-title="Current Best Match">
     <gv-summary-list-row
       key-text="Company Name"
-      :value-text="props.company.best_match.CompanyName"
+      :value-text="props.company.recommended_match.CompanyName"
     />
     <gv-summary-list-row
       key-text="Company Number"
-      :value-text="props.company.best_match.CompanyNumber"
+      :value-text="props.company.recommended_match.CompanyNumber"
     />
     <gv-summary-list-row key-text="Registered Address">
       <template #value>
-        <Address :company="props.company.best_match" />
+        <Address :company="props.company.recommended_match" />
       </template>
     </gv-summary-list-row>
   </gv-summary-list>

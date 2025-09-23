@@ -12,7 +12,8 @@ const appStore = useAppStore()
   <div v-if="appStore.state.type == 'confirmation'">
     <template v-if="appStore.state.editing">
       <EditSearchResult
-        :company="appStore.state.editing"
+        :search-string="appStore.state.editing"
+        :company="appStore.state.matches[appStore.state.editing]"
         :onSelectCompany="appStore.updateMatch"
       />
       <gv-button @click="appStore.state.editing = null">Confirm search result</gv-button>
@@ -21,7 +22,7 @@ const appStore = useAppStore()
       <div class="govuk-heading-xl">Matched Companies</div>
 
       <p class="govuk-body">
-        We found {{ appStore.state.searchResults.length }} companies in the supplied spreadsheet.
+        We found {{ Object.keys(appStore.state.matches).length }} companies in the supplied spreadsheet.
       </p>
 
       <p class="govuk-body">
@@ -35,35 +36,35 @@ const appStore = useAppStore()
       </p>
 
       <gv-summary-list
-        v-for="(result, index) in appStore.state.searchResults"
+        v-for="([key, result], index) in Object.entries(appStore.state.matches)"
         :key="index"
       >
         <template #card-title>
-          <span class="mr-2">{{ result.search_string }}</span>
-          <MatchConfidence v-if="result.best_match" :key="index" :match="result.best_match" :manually-selected="!!result.manual_selection" />
+          <span class="mr-2">{{ key }}</span>
+          <MatchConfidence v-if="result.recommended_match" :key="index" :match="result.recommended_match" :manually-selected="!!result.manual_selection" />
         </template>
 
         <template #card-actions>
           <gv-summary-card-action
-            @click.prevent="appStore.state.editing = result"
-            :visually-hidden-text="`match for ${result.search_string}`"
+            @click.prevent="appStore.state.editing = key"
+            :visually-hidden-text="`match for ${key}`"
           >
             Edit
           </gv-summary-card-action>
         </template>
 
-        <template v-if="result.best_match">
+        <template v-if="result.recommended_match">
           <gv-summary-list-row
             key-text="Company Name"
-            :value-text="result.best_match.CompanyName"
+            :value-text="result.recommended_match.CompanyName"
           />
           <gv-summary-list-row
             key-text="Company Number"
-            :value-text="result.best_match.CompanyNumber"
+            :value-text="result.recommended_match.CompanyNumber"
           />
           <gv-summary-list-row key-text="Registered Address">
             <template #value>
-              <Address :company="result.best_match" />
+              <Address :company="result.recommended_match" />
             </template>
           </gv-summary-list-row>
         </template>

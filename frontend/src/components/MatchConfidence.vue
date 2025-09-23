@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type {CompanyMatch, CompanySearchResponseWithManualSelected} from '@/api'
+import type {CompanyMatch, CompanyMatches} from '@/api'
 
 interface Props {
   match: CompanyMatch
@@ -19,9 +19,9 @@ const confidenceOption = computed(() => {
   }
 
   const score = props.match.score
-  if (score >= 0.8) {
+  if (score >= 8) {
     return { confidence: 'High Confidence', colour: 'green' }
-  } else if (score >= 0.6) {
+  } else if (score >= 3) {
     return { confidence: 'Medium Confidence', colour: 'yellow' }
   } else if (score > 0) {
     return { confidence: 'Low Confidence', colour: 'red' }

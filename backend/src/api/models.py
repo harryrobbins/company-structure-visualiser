@@ -3,6 +3,8 @@ from typing import List, Dict, Optional
 from pydantic import BaseModel, Field
 from companies_duck_house.models import Company
 
+class CompanyMatch(Company):
+    score: float = Field(description="Relevance score of the match")
 
 class CompanyMatchRequest(BaseModel):
     """
@@ -17,13 +19,13 @@ class CompanyMatchRequest(BaseModel):
     )
 
 
-class CompanyMatch(BaseModel):
+class CompanyMatchResult(BaseModel):
     """
     Represents the result of a company match, including a recommended match
     and a list of other potential matches.
     """
-    recommended_match: Optional[Company] = None
-    other_matches: List[Company]
+    recommended_match: Optional[CompanyMatch] = None
+    other_matches: List[CompanyMatch]
 
 
 class CompanyMatchResponse(BaseModel):
@@ -33,7 +35,7 @@ class CompanyMatchResponse(BaseModel):
     The values are objects containing the recommended match and other matches.
     """
 
-    matches: Dict[str, CompanyMatch]
+    matches: Dict[str, CompanyMatchResult]
 
 
 class ImageExtractionRequest(BaseModel):

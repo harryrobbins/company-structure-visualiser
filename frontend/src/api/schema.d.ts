@@ -4,28 +4,6 @@
  */
 
 export interface paths {
-    "/api/search/companies": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Search Companies
-         * @description Search for companies by name and return structured search results.
-         *     - Accepts a list of `CompanySearchRequest` objects.
-         *     - Returns a list of `CompanySearchResponse` objects with best match and other matches.
-         */
-        post: operations["search_companies_api_search_companies_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/": {
         parameters: {
             query?: never;
@@ -40,6 +18,51 @@ export interface paths {
         get: operations["read_root__get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/extract_text": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Extract Text From Image
+         * @description Receives a page number and a base64-encoded image, and returns the extracted text.
+         *     - Validates the request body using the `ImageExtractionRequest` model.
+         *     - Uses a dependency-injected LLM client.
+         *     - Handles specific LLM errors and maps them to typed `AppError` responses.
+         */
+        post: operations["extract_text_from_image_api_extract_text_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/match-companies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Match Companies
+         * @description Accepts a list of company names and returns the closest matches
+         *     from the Companies House database using Full-Text Search.
+         *     For each name, it uses an LLM to recommend the best match.
+         */
+        post: operations["match_companies_api_match_companies_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -167,41 +190,67 @@ export interface components {
              * @description Relevance score of the match
              */
             score: number;
+        } & {
+            [key: string]: unknown;
         };
-        /** CompanySearchRequest */
-        CompanySearchRequest: {
+        /**
+         * CompanyMatchRequest
+         * @description Defines the structure for the company matching request.
+         *     It expects a list of one or more company names to search for.
+         */
+        CompanyMatchRequest: {
             /**
-             * Company Name
-             * @description Name of the company to search for
+             * Company Names
+             * @description A non-empty list of company names to find matches for.
              */
-            company_name: string;
-            /**
-             * Meta
-             * @description Optional metadata object that can contain any key-value pairs
-             */
-            meta?: {
-                [key: string]: string;
-            } | null;
+            company_names: string[];
         };
-        /** CompanySearchResponse */
-        CompanySearchResponse: {
-            /**
-             * Search String
-             * @description The original search string
-             */
-            search_string: string;
-            /** @description Best matching company with relevance score */
-            best_match: components["schemas"]["CompanyMatch"] | null;
-            /**
-             * Other Matches
-             * @description List of matching companies with relevance scores
-             */
+        /**
+         * CompanyMatchResponse
+         * @description Defines the response structure for the company matching endpoint.
+         *     The keys of the 'matches' dictionary are the original search terms.
+         *     The values are objects containing the recommended match and other matches.
+         */
+        CompanyMatchResponse: {
+            /** Matches */
+            matches: {
+                [key: string]: components["schemas"]["CompanyMatchResult"];
+            };
+        };
+        /**
+         * CompanyMatchResult
+         * @description Represents the result of a company match, including a recommended match
+         *     and a list of other potential matches.
+         */
+        CompanyMatchResult: {
+            recommended_match?: components["schemas"]["CompanyMatch"] | null;
+            /** Other Matches */
             other_matches: components["schemas"]["CompanyMatch"][];
         };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * ImageExtractionRequest
+         * @description Defines the structure for the image extraction request.
+         */
+        ImageExtractionRequest: {
+            /** Page Number */
+            page_number: number;
+            /** Image Data */
+            image_data: string;
+        };
+        /**
+         * TextExtractionResponse
+         * @description Defines the response structure for the text extraction endpoint.
+         */
+        TextExtractionResponse: {
+            /** Page Number */
+            page_number: number;
+            /** Text */
+            text: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -221,39 +270,6 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    search_companies_api_search_companies_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CompanySearchRequest"][];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CompanySearchResponse"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     read_root__get: {
         parameters: {
             query?: never;
@@ -270,6 +286,72 @@ export interface operations {
                 };
                 content: {
                     "text/html": string;
+                };
+            };
+        };
+    };
+    extract_text_from_image_api_extract_text_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImageExtractionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TextExtractionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    match_companies_api_match_companies_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyMatchRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyMatchResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

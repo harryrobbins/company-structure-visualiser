@@ -14,7 +14,6 @@ from api.routers.companies import router as companies_api_router
 from api.routers.llm import router as llm_api_router
 from companies_duck_house.core import CompaniesHouseDB
 from config import settings
-import os
 
 # Get the directory where this script is located
 BASE_DIR = Path(__file__).parent.parent.parent
@@ -22,22 +21,19 @@ TEMPLATES_DIR = BASE_DIR / "templates"
 STATIC_DIR = BASE_DIR / "static"
 
 def run_startup_logic():
-    db_dir = Path(BASE_DIR / settings.db_dir)
-    db_dir.mkdir(exist_ok=True)
+    Path(settings.db_dir).mkdir(exist_ok=True)
 
-    db_path = Path(BASE_DIR / settings.db_path)
-    db = CompaniesHouseDB(db_path=str(db_path))
+    db = CompaniesHouseDB(db_path=settings.db_path)
 
     with db:
         if settings.force_recreate_db or not db.table_exists("companies"):
             if settings.force_recreate_db:
                 print("`force_recreate_db` is true, rebuilding database...")
             else:
-                print(f"Table 'companies' not found in {db_path}, creating it...")
-            data_source = str(BASE_DIR / settings.data_source)
-            db.create_database_from_source(source=data_source)
+                print(f"Table 'companies' not found in {settings.db_path}, creating it...")
+            db.create_database_from_source(source=settings.data_source)
         else:
-            print(f"Table 'companies' already exists in {db_path}, skipping creation.")
+            print(f"Table 'companies' already exists in {settings.db_path}, skipping creation.")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

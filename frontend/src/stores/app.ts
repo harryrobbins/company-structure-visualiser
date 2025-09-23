@@ -1,13 +1,12 @@
 import { defineStore } from 'pinia'
 import {
-  type EntityGraph, entitySearchRequest,
-  type GroupStructure, organisationGraph,
+  type EntityGraph,
+  type GroupStructure,
   parseCompanyOwnershipWorkbook
 } from '@/composables/parse.ts'
 import {
   type CompanyMatch,
-  type CompanySearchRequest,
-  type CompanySearchResponseWithManualSelected,
+  type CompanyMatches,
   searchCompanies
 } from "@/api";
 
@@ -18,8 +17,8 @@ export interface UploadState {
 export interface ConfirmationState {
   type: 'confirmation'
   structure: GroupStructure
-  searchResults: CompanySearchResponseWithManualSelected[]
-  editing: CompanySearchResponseWithManualSelected | null
+  matches: CompanyMatches
+  editing: string | null
 }
 
 export interface FailedState {
@@ -30,9 +29,9 @@ const invalidAppState: FailedState = Object.freeze({ type: 'failed', message: 'I
 
 export interface VisualizeState {
   type: 'visualize'
-  structure: GroupStructure
   graph: EntityGraph
-  searchResults: CompanySearchResponseWithManualSelected[]
+  structure: GroupStructure
+  matches: CompanyMatches
 }
 
 export interface AppState {
@@ -58,9 +57,10 @@ export const useAppStore = defineStore('app', {
       try {
         const data = await file.arrayBuffer()
         const structure = await parseCompanyOwnershipWorkbook(data)
-        const requests: CompanySearchRequest[] = structure.entities.map(entitySearchRequest)
-        const searchResults = await searchCompanies(requests)
-        this.state = { type: 'confirmation', structure, searchResults, editing: null }
+        const searchResults = await searchCompanies({
+          company_names: structure.entities.map(entity => entity.name)
+        })
+        this.state = { type: 'confirmation', structure, matches: searchResults.matches, editing: null }
       } catch (error) {
         this.state = { type: 'failed', message: error instanceof Error ? error.message : 'Unknown error' }
       } finally {
@@ -74,7 +74,7 @@ export const useAppStore = defineStore('app', {
         this.state = {
           type: 'confirmation',
           structure: this.state.structure,
-          searchResults: this.state.searchResults,
+          matches: this.state.matches,
           editing: null
         }
       } else {
@@ -87,15 +87,15 @@ export const useAppStore = defineStore('app', {
         return
       }
 
-      const editing = this.state.editing
-      if (!editing) {
+      if (this.state.editing === null || !(this.state.editing in this.state.matches)) {
         this.state = invalidAppState
         return
       }
+      const editing = this.state.matches[this.state.editing]
 
       // Check if selected match exists in other_matches
       const selectedIndex = editing.other_matches.findIndex(match =>
-        match.CompanyNumber === selected.CompanyNumber
+        match.CompanyName === selected.CompanyName
       )
       if (selectedIndex === -1) {
         this.state = invalidAppState
@@ -106,11 +106,11 @@ export const useAppStore = defineStore('app', {
       const selectedMatch = editing.other_matches.splice(selectedIndex, 1)[0]
 
       // Add old best_match to other_matches if it exists
-      const originalSelection = editing.best_match
+      const originalSelection = editing.recommended_match
       if (originalSelection) {
         editing.other_matches.push(originalSelection)
       }
-      editing.best_match = selectedMatch
+      editing.recommended_match = selectedMatch
       editing.other_matches.sort((a, b) => b.score - a.score)
 
       if (editing.manual_selection) {
@@ -132,8 +132,8 @@ export const useAppStore = defineStore('app', {
           this.state = {
             type: 'visualize',
             structure: this.state.structure,
-            searchResults: this.state.searchResults,
-            graph: updatedGraph(this.state),
+            matches: this.state.matches,
+            graph: generateGraph(this.state),
           }
           break
         case 'visualize':
@@ -148,15 +148,27 @@ export const useAppStore = defineStore('app', {
   },
 })
 
-function updatedGraph({ structure, searchResults }: ConfirmationState): EntityGraph {
-  const fixedEntities = structure.entities.map(entity => {
-    const searchString = entitySearchRequest(entity).company_name
-    const result = searchResults.find(r => r.search_string === searchString)
-    return result?.best_match ? { ...entity, name: result.best_match.CompanyName } : entity;
-  })
-
-  return organisationGraph({
-    entities: fixedEntities,
-    relationships: structure.relationships
-  })
+function generateGraph({ structure, matches }: ConfirmationState): EntityGraph {
+  return {
+    nodes: structure.entities
+      .map(entity => {
+        const result = matches[entity.name]?.recommended_match
+        return result ? { ...entity, name: result.CompanyName } : entity;
+      })
+      .map(entity => ({
+        id: entity.id,
+        data: {label: entity.name, entity},
+        position: {x: 0, y: 0},
+        type: 'company'
+      })),
+    edges: structure.relationships.map((relationship) => ({
+      id: `${relationship.parent}->${relationship.child}`,
+      source: relationship.parent,
+      target: relationship.child,
+      label: `${relationship.percentageOwnership.toFixed(0)}%`,
+      markerEnd: 'arrowclosed',
+      data: {relationship},
+      type: 'straight',
+    }))
+  }
 }

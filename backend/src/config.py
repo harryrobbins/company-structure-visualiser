@@ -9,6 +9,11 @@ from pathlib import Path
 from typing import Optional, Literal
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+BASE_DIR = Path(__file__).parent.parent
+
+def relative_to_base(*paths: str) -> str:
+    """Helper to create paths relative to the project base directory."""
+    return str(BASE_DIR.joinpath(*paths))
 
 class Settings(BaseSettings):
     """
@@ -38,14 +43,14 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     
     # --- Database Settings ---
-    db_dir: str = "db"
-    data_dir: str = "data"
-    db_path: str = "db/companies.duckdb"
-    test_db_path: str = "db/test_companies.duckdb"
+    db_dir: str = relative_to_base("db")
+    data_dir: str = relative_to_base("data")
+    db_path: str = relative_to_base("db/companies.duckdb")
+    test_db_path: str = relative_to_base("db/test_companies.duckdb")
 
     # Path to the source data file for initial database creation.
     # Defaults to the large CSV file in the project root.
-    data_source: str = "../BasicCompanyDataAsOneFile-2025-09-01.csv"
+    data_source: str = relative_to_base("../BasicCompanyDataAsOneFile-2025-09-01.csv")
 
     # Flag to force recreation of the database on startup.
     force_recreate_db: bool = False
