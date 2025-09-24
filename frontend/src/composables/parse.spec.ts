@@ -24,7 +24,7 @@ describe('parse', () => {
         {
           "id": "12345670",
           "type": "Company",
-          "name": "Entity name 1",
+          "name": "Google",
           "tin": "12345670",
           "taxJurisdiction": "UNITED KINGDOM",
           "taxJurisdictionOfIncorporation": "UNITED KINGDOM"
@@ -32,7 +32,7 @@ describe('parse', () => {
         {
           "id": "12345671",
           "type": "Company Hybrid",
-          "name": "Entity name 2",
+          "name": "Amazon",
           "tin": "12345671",
           "taxJurisdiction": "UNITED STATES",
           "taxJurisdictionOfIncorporation": "UNITED STATES"
@@ -40,7 +40,7 @@ describe('parse', () => {
         {
           "id": "12345672",
           "type": "Partnership",
-          "name": "Entity name 3",
+          "name": "Microsoft",
           "tin": "12345672",
           "taxJurisdiction": "AUSTRALIA",
           "taxJurisdictionOfIncorporation": "AUSTRALIA"
@@ -48,7 +48,7 @@ describe('parse', () => {
         {
           "id": "12345673",
           "type": "Partnership Hybrid",
-          "name": "Entity name 4",
+          "name": "Facebook",
           "tin": "12345673",
           "taxJurisdiction": "NEW ZEALAND",
           "taxJurisdictionOfIncorporation": "NEW ZEALAND"
@@ -56,7 +56,7 @@ describe('parse', () => {
         {
           "id": "12345674",
           "type": "Branch",
-          "name": "Entity name 5",
+          "name": "Anthropic",
           "tin": "12345674",
           "taxJurisdiction": "CHILE",
           "taxJurisdictionOfIncorporation": "CHILE"
@@ -64,7 +64,7 @@ describe('parse', () => {
         {
           "id": "12345675",
           "type": "Trust",
-          "name": "Entity name 6",
+          "name": "OpenAI",
           "tin": "12345675",
           "taxJurisdiction": "BERMUDA",
           "taxJurisdictionOfIncorporation": "BERMUDA"
@@ -72,7 +72,7 @@ describe('parse', () => {
         {
           "id": "12345676",
           "type": "Company",
-          "name": "Entity name 7",
+          "name": "Deepmind",
           "tin": "12345676",
           "taxJurisdiction": "UNITED KINGDOM",
           "taxJurisdictionOfIncorporation": "UNITED KINGDOM"
@@ -80,7 +80,7 @@ describe('parse', () => {
         {
           "id": "12345677",
           "type": "Company",
-          "name": "Entity name 8",
+          "name": "JetBrains",
           "tin": "12345677",
           "taxJurisdiction": "UNITED KINGDOM",
           "taxJurisdictionOfIncorporation": "UNITED STATES"
@@ -88,7 +88,7 @@ describe('parse', () => {
         {
           "id": "12345678",
           "type": "Company",
-          "name": "Entity name 9",
+          "name": "Github",
           "tin": "12345678",
           "taxJurisdiction": "UNITED STATES",
           "taxJurisdictionOfIncorporation": "UNITED STATES"
@@ -96,7 +96,7 @@ describe('parse', () => {
         {
           "id": "12345679",
           "type": "Company",
-          "name": "Entity name 10",
+          "name": "Apple",
           "tin": "12345679",
           "taxJurisdiction": "UNITED STATES",
           "taxJurisdictionOfIncorporation": "UNITED KINGDOM"
@@ -106,22 +106,22 @@ describe('parse', () => {
         {
           "parent": "12345670",
           "child": "12345671",
-          "percentageOwnership": 100
+          "percentageOwnership": 20
         },
         {
           "parent": "12345670",
           "child": "12345676",
-          "percentageOwnership": 100
+          "percentageOwnership": 40
         },
         {
           "parent": "12345671",
           "child": "12345672",
-          "percentageOwnership": 100
+          "percentageOwnership": 60
         },
         {
           "parent": "12345671",
           "child": "12345673",
-          "percentageOwnership": 100
+          "percentageOwnership": 80
         },
         {
           "parent": "12345671",
@@ -136,17 +136,17 @@ describe('parse', () => {
         {
           "parent": "12345674",
           "child": "12345675",
-          "percentageOwnership": 100
+          "percentageOwnership": 25
         },
         {
           "parent": "12345676",
           "child": "12345677",
-          "percentageOwnership": 100
+          "percentageOwnership": 55.00000000000001
         },
         {
           "parent": "12345678",
           "child": "12345679",
-          "percentageOwnership": 100
+          "percentageOwnership": 99
         }
       ]
     })

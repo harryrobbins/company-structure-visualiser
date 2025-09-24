@@ -62,10 +62,14 @@ async def match_companies(
                         recommended_match = match
                     else:
                         other_matches.append(match)
-            
+
             if not recommended_match:
-                # if LLM fails or returns invalid number, return all as other_matches
-                other_matches = matches
+                # If LLM fails or returns invalid number, use the best scoring match as recommended
+                if matches:
+                    recommended_match = matches[0]  # First match has the best score
+                    other_matches = matches[1:]     # Rest are other matches
+                else:
+                    other_matches = matches
 
             results[name] = CompanyMatchResult(
                 recommended_match=recommended_match,

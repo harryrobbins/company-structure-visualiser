@@ -7,16 +7,16 @@ from httpx import AsyncClient, ASGITransport
 from fastapi import status
 
 # Import your FastAPI app and the dependency function we need to override
-from src.company_structure_api.app import app
-from src.api.dependencies import get_db
-from src.companies_duck_house.core import CompaniesHouseDB
-from src.config import settings
+from company_structure_api.app import app
+from api.dependencies import get_db
+from companies_duck_house.core import CompaniesHouseDB
+from config import settings
 
 # Path to the sample data for testing
 TESTS_DIR = Path(__file__).parent
 SAMPLE_CSV = str(TESTS_DIR / "companies_house_sample_data.csv")
 TEST_DB_FILE = settings.test_db_path
-
+settings.OPENAI_API_KEY = "NONE"
 
 # This fixture sets up a temporary database with sample data for API tests
 @pytest.fixture(scope="module")
@@ -62,7 +62,7 @@ async def test_match_companies_success(client: AsyncClient, mocker):
     Tests the /api/match-companies endpoint with a valid request.
     """
     mock_recommend = mocker.patch(
-        "src.api.routers.companies.recommend_best_match",
+        "api.routers.companies.recommend_best_match",
         side_effect=["11743365", "SC606050"]
     )
     request_data = {"company_names": ["GRAPHICS", "INSPIRED INVESTMENTS"]}

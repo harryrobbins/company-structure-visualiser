@@ -90,6 +90,9 @@ function confirm() {
             </template>
           </gv-summary-list-row>
         </template>
+        <template v-else>
+          <p class="govuk-body">No matches</p>
+        </template>
       </gv-summary-list>
 
       <gv-button @click="confirm">View Company Organisation Chart</gv-button>
