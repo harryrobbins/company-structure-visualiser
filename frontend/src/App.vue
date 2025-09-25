@@ -9,7 +9,7 @@ import Loading from "@/components/Loading.vue";
 
 <template>
   <gv-header :rebrand="true" />
-  <gv-service-navigation service-name="Company Visualizer" service-url="/example-page" />
+  <gv-service-navigation service-name="Company Visualizer" service-url="/" />
   <main class="container mx-auto p-4">
     <Breadcrumbs />
     <Error />
