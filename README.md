@@ -74,17 +74,9 @@ The project is organized into a clean monorepo-style structure:
 2.  **Setup the Backend:**
     It's recommended to use a Python virtual environment.
     ```bash
-    # Create a virtual environment
-    python -m venv .venv
-
-    # Activate it (Windows)
-    .\.venv\Scripts\activate
-
-    # Activate it (macOS/Linux)
-    source .venv/bin/activate
-
-    # Install Python dependencies
-    pip install -r requirements.txt
+    cd backend
+    uv venv
+    uv sync
     ```
 
 3.  **Setup the Frontend:**
@@ -105,11 +97,11 @@ The application can be run in two modes: **development** (for coding and testing
 For the best development experience, run the backend and frontend servers in two separate terminals.
 
 **Terminal 1: Start the FastAPI Backend**
-(From the project root directory)
+(From the backend directory)
 ```bash
-uvicorn app:app --reload --port 8000
+uv run company_structure_api
 ```
-The backend will be running at `http://localhost:8000`.
+The backend will be running at `http://localhost:8050`.
 
 **Terminal 2: Start the Vite Frontend Dev Server**
 (From the project root directory)
@@ -135,9 +127,9 @@ This mode simulates how the application would run when deployed. It uses the com
     Now, start the FastAPI server, which will serve the complete application.
     (From the project root directory)
     ```bash
-    uvicorn app:app --host 0.0.0.0 --port 8000
+    uv run company_structure_api
     ```
-    Open `http://localhost:8000` in your browser.
+    Open `http://localhost:8050` in your browser.
 
 ---
 

@@ -19,7 +19,11 @@ export interface ManualSelection {
 }
 
 export async function searchCompanies(request: CompanyMatchRequest): Promise<CompanyMatchResponse> {
-  const response = await client.POST('/api/match-companies', { body: request })
-  // TODO handle error
-  return response.data || { matches: {} }
+  const { data, response } = await client.POST('/api/match-companies', { body: request })
+  if (response.ok) {
+    return data || { matches: {} }
+  } else {
+    console.error(response)
+    throw new Error('There was a problem searching for companies, please try again.')
+  }
 }

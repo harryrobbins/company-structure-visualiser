@@ -8,6 +8,7 @@ import { viteStaticCopy } from 'vite-plugin-static-copy'
 import tailwindcss from '@tailwindcss/vite'
 
 const BASE_PATH = process.env.BASE_PATH || '/static/dist/'
+const API_PATH = process.env.API_PATH || '/'
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => {
@@ -63,7 +64,7 @@ export default defineConfig(({ command }) => {
       },
     },
     define: {
-      __BASE_PATH__: JSON.stringify(base),
+      __API_PATH__: JSON.stringify(API_PATH),
     },
     root: '.',
     build: {
