@@ -7,7 +7,7 @@ const appStore = useAppStore()
 
 <template>
   <gv-error-summary v-if="appStore.state.type == 'failed'" :disable-auto-focus="true">
-    <gv-error-link target-id="file-upload">
+    <gv-error-link href="#" @click.prevent="appStore.$reset()">
       {{ appStore.state.message }}
     </gv-error-link>
   </gv-error-summary>
