@@ -11,7 +11,7 @@ repomix.txt
 **/__pycache__
 node_modules
 frontend/node_modules
-backend/static/dist
+backend/static
 run_pnpm.sh
 **/*.duckdb
 **/*.db

@@ -71,19 +71,18 @@ The project is organized into a clean monorepo-style structure:
     cd company_visualiser
     ```
 
-2.  **Setup the Backend:**
-    It's recommended to use a Python virtual environment.
-    ```bash
-    cd backend
-    uv venv
-    uv sync
-    ```
-
-3.  **Setup the Frontend:**
+2.  **Setup the Frontend:**
     Navigate to the `frontend` directory and install the Node.js dependencies.
     ```bash
     cd frontend
     pnpm install
+    pnpm run build
+    ```
+
+3.  **Setup the Backend:**
+    ```bash
+    cd ../backend
+    uv sync
     ```
 
 ---

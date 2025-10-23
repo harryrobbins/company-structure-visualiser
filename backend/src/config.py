@@ -9,12 +9,6 @@ from pathlib import Path
 from typing import Optional, Literal
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-BASE_DIR = Path(__file__).parent.parent
-
-def relative_to_base(*paths: str) -> str:
-    """Helper to create paths relative to the project base directory."""
-    return str(BASE_DIR.joinpath(*paths))
-
 class Settings(BaseSettings):
     """
     Defines the application's configuration settings.
@@ -38,26 +32,24 @@ class Settings(BaseSettings):
     AZURE_OPENAI_DEPLOYMENT_NAME: Optional[str] = None
 
     # --- Application Settings ---
-    # The root path for deploying the app under a sub-directory.
-    ROOT_PATH: str = ""
     LOG_LEVEL: str = "INFO"
     
     # --- Database Settings ---
-    db_dir: str = relative_to_base("db")
-    data_dir: str = relative_to_base("data")
-    db_path: str = relative_to_base("db/companies.duckdb")
-    test_db_path: str = relative_to_base("db/test_companies.duckdb")
+    db_dir: str = "db"
+    data_dir: str = "data"
+    db_path: str = "db/companies.duckdb"
+    test_db_path: str = "db/test_companies.duckdb"
 
     # Path to the source data file for initial database creation.
     # Defaults to the large CSV file in the project root.
-    data_source: str = relative_to_base("../BasicCompanyDataAsOneFile-2025-09-01.csv")
+    data_source: str = "BasicCompanyDataAsOneFile-2025-10-01.zip"
 
     # Flag to force recreation of the database on startup.
     force_recreate_db: bool = False
 
     # Configure Pydantic-Settings to look for a .env file in the project root.
     model_config = SettingsConfigDict(
-        env_file=Path(__file__).resolve().parent.parent.parent / ".env",
+        env_file=(".env.local", ".env"),
         env_file_encoding='utf-8',
         extra='ignore'
     )

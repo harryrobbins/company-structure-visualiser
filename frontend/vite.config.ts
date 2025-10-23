@@ -1,5 +1,4 @@
 import { fileURLToPath, URL } from 'node:url'
-import path from 'node:path'
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
@@ -7,17 +6,11 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 import tailwindcss from '@tailwindcss/vite'
 
-const BASE_PATH = process.env.BASE_PATH || '/static/dist/'
-const API_PATH = process.env.API_PATH || '/'
+const BASE_PATH = process.env.BASE_PATH || '/'
 
-// https://vite.dev/config/
-export default defineConfig(({ command }) => {
-  // This function allows us to have different configs for 'serve' and 'build'.
-  const isProduction = command === 'build';
-  const base = isProduction ? BASE_PATH : '/';
-
+export default defineConfig(() => {
   return {
-    base,
+    base: BASE_PATH,
     plugins: [
       vue(),
       vueDevTools(),
@@ -36,14 +29,14 @@ export default defineConfig(({ command }) => {
           order: 'post',
           handler(html) {
             // assets are copied from the govuk ui library and vite does not rewrite their paths for us
-            if (isProduction) {
+            if (BASE_PATH !== '/') {
               return html.replace(/href="\/assets\//g, `href="${BASE_PATH}assets/`)
             }
             return html
           }
         },
         generateBundle(options, bundle) {
-          if (isProduction) {
+          if (BASE_PATH !== '/') {
             // Rewrite CSS URLs for GOV.UK fonts
             Object.keys(bundle).forEach(fileName => {
               const file = bundle[fileName];
@@ -64,13 +57,13 @@ export default defineConfig(({ command }) => {
       },
     },
     define: {
-      __API_PATH__: JSON.stringify(API_PATH),
+      __BASE_PATH__: JSON.stringify(BASE_PATH),
     },
     root: '.',
     build: {
-      outDir: '../backend/static/dist',
+      outDir: '../backend/static',
       assetsDir: 'assets',
-      manifest: true,
+      manifest: false,
       emptyOutDir: true,
     },
     server: {

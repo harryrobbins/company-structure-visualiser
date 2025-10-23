@@ -75,7 +75,6 @@ class CompaniesHouseDB:
         source_path = Path(source)
         data_dir = Path(settings.data_dir)
         data_dir.mkdir(exist_ok=True)
-        csv_file_path = None
 
         if source.startswith(("http://", "https")):
             zip_path = data_dir / "BasicCompanyData.zip"

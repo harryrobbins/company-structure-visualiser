@@ -6,8 +6,6 @@ from pathlib import Path
 from httpx import AsyncClient, ASGITransport
 from fastapi import status
 
-# Import your FastAPI app and the dependency function we need to override
-from company_structure_api.app import app
 from api.dependencies import get_db
 from companies_duck_house.core import CompaniesHouseDB
 from config import settings
@@ -17,6 +15,11 @@ TESTS_DIR = Path(__file__).parent
 SAMPLE_CSV = str(TESTS_DIR / "companies_house_sample_data.csv")
 TEST_DB_FILE = settings.test_db_path
 settings.OPENAI_API_KEY = "NONE"
+
+@pytest.fixture(autouse=True)
+def change_test_dir(request, monkeypatch):
+    root_path = Path(request.fspath.dirname).resolve().parent
+    monkeypatch.chdir(root_path)
 
 # This fixture sets up a temporary database with sample data for API tests
 @pytest.fixture(scope="module")
@@ -44,6 +47,7 @@ def test_db_manager():
 async def client(test_db_manager):
     # This is the key part for testing: we tell our FastAPI app
     # to use our temporary test database instead of the real one.
+    from company_structure_api.app import app
     app.dependency_overrides[get_db] = lambda: test_db_manager
 
     transport = ASGITransport(app=app)

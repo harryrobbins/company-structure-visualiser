@@ -6,8 +6,8 @@ import sys
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.companies_duck_house.core import CompaniesHouseDB
-from src.config import settings
+from companies_duck_house.core import CompaniesHouseDB
+from config import settings
 
 def rebuild_database():
     """

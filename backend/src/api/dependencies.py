@@ -56,10 +56,6 @@ def initialize_database():
         print(f"FATAL: Could not connect to Companies House DB at '{settings.db_path}'. Error: {e}")
         db_instance = None
 
-# --- Application Startup Logic ---
-# This function is called once when the FastAPI application starts.
-initialize_database()
-
 
 def get_db() -> CompaniesHouseDB:
     """

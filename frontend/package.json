@@ -9,7 +9,7 @@
   "packageManager": "pnpm@10.17.0",
   "scripts": {
     "dev": "vite",
-    "build": "run-p type-check \"build-only {@}\" -- && mv ../backend/static/dist/index.html ../backend/templates/index.html",
+    "build": "run-p type-check \"build-only {@}\"",
     "preview": "vite preview",
     "test": "vitest",
     "build-only": "vite build",

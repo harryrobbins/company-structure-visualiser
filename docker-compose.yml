@@ -1,30 +1,33 @@
-# docker-compose.yml (Updated)
-# Aligns ports, environment variables, and volumes with the project structure.
-version: '3.8'
+volumes:
+  ollama_data:
+    driver: local
+
 services:
-  pdf_extractor:
-    build: .
-    image: pdf-extractor:latest
-    container_name: pdf_extractor_app
-    # Standardized environment variables.
-    # These now align with the names used in api/config.py.
-    environment:
-      - ROOT_PATH=${ROOT_PATH:-}
-      - LLM_PROVIDER=${LLM_PROVIDER:-openai}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
-      - OPENAI_MODEL_NAME=${OPENAI_MODEL_NAME:-gpt-4o-mini}
-      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT:-}
-      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY:-}
-      - AZURE_OPENAI_DEPLOYMENT_NAME=${AZURE_OPENAI_DEPLOYMENT_NAME:-}
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+  ollama:
+    image: ollama/ollama:latest
     ports:
-      # Port mapping corrected. The host port 8000 now correctly maps
-      # to the container port 8000 where Uvicorn will be running.
-      - '8000:8000'
+      - "11434:11434"
     volumes:
-      # Volume paths corrected to match the actual project layout.
-      # This mounts the entire project directory for hot-reloading.
-      - .:/app
-    # Command updated to run on port 8000, matching the port mapping.
-    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  ollama-setup:
+    image: ollama/ollama:latest
+    depends_on:
+      ollama:
+        condition: service_healthy
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    entrypoint: ["/bin/ollama"]
+    command: ["pull", "tinyllama"]
+    restart: "no"
