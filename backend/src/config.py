@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     db_dir: str = "db"
     data_dir: str = "data"
     db_path: str = "db/companies.duckdb"
+    tmpdir: str = "/tmp"
     test_db_path: str = "db/test_companies.duckdb"
 
     # Path to the source data file for initial database creation.
