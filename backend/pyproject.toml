@@ -2,7 +2,6 @@
 name = "company_structure_api"
 version = "0.1.0"
 description = "A Python package to download UK Companies House data into a searchable DuckDB database with FTS."
-readme = "../README.md"
 requires-python = ">=3.11"
 authors = [
     { name = "Your Name", email = "your@email.com" },
