@@ -1,4 +1,4 @@
-import os
+import sysconfig
 import zipfile
 from pathlib import Path
 from typing import Optional
@@ -41,8 +41,10 @@ class CompaniesHouseDB:
         print(f"Connecting to DuckDB at: {self.db_path}")
         self.con = duckdb.connect(database=self.db_path, read_only=False)
         try:
-            self.con.execute("INSTALL fts;")
-            self.con.execute("LOAD fts;")
+            duckdb_fts_extension_path = str(Path(sysconfig.get_path('purelib')) / "duckdb_extension_fts" / "extensions" / "v1.3.2" / "fts.duckdb_extension")
+            print("Installing and loading DuckDB FTS extension from:", duckdb_fts_extension_path)
+            self.con.execute(f"FORCE INSTALL '{duckdb_fts_extension_path}';")
+            self.con.execute(f"LOAD '{duckdb_fts_extension_path}';")
             print("FTS extension installed and loaded successfully.")
         except Exception as e:
             print(
