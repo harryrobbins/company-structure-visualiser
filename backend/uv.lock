@@ -163,6 +163,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "posit-sdk" },
     { name = "pytest-mock" },
     { name = "pytest-trio" },
     { name = "requests" },
@@ -187,6 +188,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "posit-sdk", specifier = ">=0.12.0" },
     { name = "pytest-mock", specifier = ">=3.14.0" },
     { name = "pytest-trio", specifier = ">=0.8.0" },
     { name = "requests", specifier = ">=2.28.0" },
@@ -504,6 +506,20 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/f9/e2/3e91f31a7d2b083fe6ef3fa267035b518369d9511ffab804f839851d2779/pluggy-1.6.0.tar.gz", hash = "sha256:7dcc130b76258d33b90f61b658791dede3486c3e6bfb003ee5c9bfb396dd22f3", size = 69412, upload-time = "2025-05-15T12:30:07.975Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/54/20/4d324d65cc6d9205fabedc306948156824eb9f0ee1633355a8f7ec5c66bf/pluggy-1.6.0-py3-none-any.whl", hash = "sha256:e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746", size = 20538, upload-time = "2025-05-15T12:30:06.134Z" },
+]
+
+[[package]]
+name = "posit-sdk"
+version = "0.12.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "packaging" },
+    { name = "requests" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/67/ae/740bdca2de628c7a3e400a916b66a66366b98341f10a61cde6c05706b126/posit_sdk-0.12.0.tar.gz", hash = "sha256:4ba8306dbec20b56f55f5282dbcd42431d6cbf6fc960081cc8340f87dfd9d008", size = 122184, upload-time = "2025-07-30T20:41:05.438Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/91/06/6ba8a4ada3ba5683788b6288a15b1d7247b6810f91bc2d89d01bfb8c753d/posit_sdk-0.12.0-py3-none-any.whl", hash = "sha256:909ae8cc86b5563df0bd0d62ebad42ea55cc835d6649f7056e8f04cd95b55784", size = 77251, upload-time = "2025-07-30T20:41:03.945Z" },
 ]
 
 [[package]]
