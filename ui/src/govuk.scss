@@ -1,0 +1,14 @@
+$base-path: "/" !default; // injected through vite.config.ts
+
+@use "govuk-frontend/dist/govuk/index.scss" with (
+  $govuk-assets-path: $base-path,
+  $govuk-breakpoints: (
+    mobile: 640px,
+    tablet: 768px,
+    desktop: 1024px
+  ) // derived from tailwind defaults https://tailwindcss.com/docs/responsive-design
+);
+@use "hmrc-frontend/hmrc/all.scss" with (
+  $hmrc-assets-path: $base-path,
+  $govuk-assets-path: $base-path
+);

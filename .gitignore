@@ -9,9 +9,6 @@
 
 repomix.txt
 **/__pycache__
-node_modules
-frontend/node_modules
-backend/static
 run_pnpm.sh
 **/*.duckdb
 **/*.db
@@ -21,3 +18,5 @@ run_pnpm.sh
 
 !sample_data/sample_company_ownership.xlsx
 !backend/tests/companies_house_sample_data.csv
+
+static/
