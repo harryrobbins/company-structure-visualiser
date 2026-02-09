@@ -1,7 +1,8 @@
 import dagre from '@dagrejs/dagre'
 import graphlib from '@dagrejs/graphlib'
 import { Position, useVueFlow } from '@vue-flow/core'
-import type { EntityGraph } from '@/composables/parse.ts'
+
+import type { EntityGraph } from '@/db/models.ts'
 
 export type LayoutDirection = 'LR' | 'TB'
 

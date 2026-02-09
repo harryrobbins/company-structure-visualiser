@@ -1,14 +1,7 @@
 import { defineStore } from 'pinia'
-import {
-  type EntityGraph,
-  type GroupStructure,
-  parseCompanyOwnershipWorkbook
-} from '@/composables/parse.ts'
-import {
-  type CompanyMatch,
-  type CompanyMatches,
-  searchCompanies
-} from "@/api";
+import { parseCompanyOwnershipWorkbook } from '@/composables/parse.ts'
+import { type CompanyMatch, type CompanyMatches, searchCompanies } from '@/api'
+import type { EntityGraph, GroupStructure } from '@/db/models.ts'
 
 export interface UploadState {
   type: 'upload'
@@ -35,7 +28,7 @@ export interface VisualizeState {
 }
 
 export interface AppState {
-  state: UploadState | ConfirmationState | VisualizeState | FailedState,
+  state: UploadState | ConfirmationState | VisualizeState | FailedState
   loading: boolean
 }
 
@@ -43,7 +36,7 @@ export const useAppStore = defineStore('app', {
   state: (): AppState => {
     return {
       state: { type: 'upload' },
-      loading: false
+      loading: false,
     }
   },
   actions: {
@@ -58,7 +51,7 @@ export const useAppStore = defineStore('app', {
         const data = await file.arrayBuffer()
         const structure = await parseCompanyOwnershipWorkbook(data)
         const searchResults = await searchCompanies({
-          company_names: structure.entities.map(entity => entity.name)
+          company_names: structure.entities.map((entity) => entity.name),
         })
         this.state = { type: 'confirmation', structure, matches: searchResults.matches, editing: null }
       } catch (error) {
@@ -75,7 +68,7 @@ export const useAppStore = defineStore('app', {
           type: 'confirmation',
           structure: this.state.structure,
           matches: this.state.matches,
-          editing: null
+          editing: null,
         }
       } else {
         this.state = invalidAppState
@@ -96,10 +89,8 @@ export const useAppStore = defineStore('app', {
         this.state = invalidAppState
         return
       }
-        // Check if selected match exists in other_matches
-        const selectedIndex = editing.other_matches.findIndex(
-          (match) => match.CompanyName === selected.CompanyName,
-        )
+      // Check if selected match exists in other_matches
+      const selectedIndex = editing.other_matches.findIndex((match) => match.CompanyName === selected.CompanyName)
       if (selectedIndex === -1) {
         this.state = invalidAppState
         return
@@ -123,7 +114,7 @@ export const useAppStore = defineStore('app', {
         }
       } else if (originalSelection) {
         editing.manual_selection = {
-          original_selection: originalSelection.CompanyNumber
+          original_selection: originalSelection.CompanyNumber,
         }
       }
 
@@ -154,15 +145,15 @@ export const useAppStore = defineStore('app', {
 function generateGraph({ structure, matches }: ConfirmationState): EntityGraph {
   return {
     nodes: structure.entities
-      .map(entity => {
+      .map((entity) => {
         const result = matches[entity.name]?.recommended_match
-        return result ? { ...entity, name: result.CompanyName } : entity;
+        return result ? { ...entity, name: result.CompanyName } : entity
       })
-      .map(entity => ({
+      .map((entity) => ({
         id: entity.id,
-        data: {label: entity.name, entity},
-        position: {x: 0, y: 0},
-        type: 'company'
+        data: { label: entity.name, entity },
+        position: { x: 0, y: 0 },
+        type: 'company',
       })),
     edges: structure.relationships.map((relationship) => ({
       id: `${relationship.parent}->${relationship.child}`,
@@ -170,8 +161,8 @@ function generateGraph({ structure, matches }: ConfirmationState): EntityGraph {
       target: relationship.child,
       label: `${relationship.percentageOwnership.toFixed(0)}%`,
       markerEnd: 'arrowclosed',
-      data: {relationship},
+      data: { relationship },
       type: 'straight',
-    }))
+    })),
   }
 }

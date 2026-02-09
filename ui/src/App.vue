@@ -1,25 +1,16 @@
 <script setup lang="ts">
-import Graph from '@/components/Graph.vue'
-import FileUpload from '@/components/FileUpload.vue'
-import SearchConfirmation from "@/components/SearchConfirmation.vue";
-import Error from "@/components/Error.vue";
-import Breadcrumbs from "@/components/Breadcrumbs.vue";
-import Loading from "@/components/Loading.vue";
+import Breadcrumbs from '@/components/govuk/Breadcrumbs.vue'
+import Header from '@/components/govuk/Header.vue'
+import Footer from '@/components/govuk/Footer.vue'
 </script>
 
 <template>
-  <gv-header :rebrand="true" />
-  <gv-service-navigation service-name="Company Visualizer" service-url="/" />
+  <Header />
   <main class="container mx-auto p-4">
     <Breadcrumbs />
-    <Error />
-    <FileUpload />
-    <Loading />
-    <SearchConfirmation />
-    <Graph />
+    <RouterView />
   </main>
-  <gv-footer :rebrand="true" />
+  <Footer />
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

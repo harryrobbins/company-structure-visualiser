@@ -1,81 +1,16 @@
-import {Workbook, type Worksheet} from 'exceljs'
+import { Workbook, type Worksheet } from 'exceljs'
 import * as z from 'zod/mini'
-import type {Edge, Node} from '@vue-flow/core'
-
-export interface NodeData {
-  label: string
-  entity: Entity
-}
-
-export interface EntityGraph {
-  nodes: Node<NodeData>[]
-  edges: Edge<{ relationship: EntityRelationship }>[]
-}
-
-
-const EntityRow = z.object({
-  'Tax Jurisdiction': z.string(),
-  'Constituent Entities Resident in Tax Jurisdiction': z.string(),
-  'Constituent Entities TIN': z.coerce.string(),
-  'Tax Jurisdiction of Incorporation if Different from Residence': z.optional(z.string()),
-  'Entity type': z.enum(['Company', 'Company Hybrid', 'Partnership', 'Partnership Hybrid', 'Branch', 'Trust']),
-})
-export type EntityType = z.infer<typeof EntityRow>['Entity type']
-
-export interface Entity {
-  id: string
-  type: EntityType
-  name: string
-  tin: string
-  taxJurisdiction: string
-  taxJurisdictionOfIncorporation: string
-}
-
-function cleanUpEntity(entity: z.infer<typeof EntityRow>): Entity {
-  const name = entity['Constituent Entities Resident in Tax Jurisdiction'].trim()
-  const tin = entity['Constituent Entities TIN'].trim()
-  const taxJurisdiction = entity['Tax Jurisdiction'].trim()
-  return {
-    id: tin || name,
-    type: entity['Entity type'],
-    name,
-    tin,
-    taxJurisdiction,
-    taxJurisdictionOfIncorporation: entity['Tax Jurisdiction of Incorporation if Different from Residence']?.trim() || taxJurisdiction,
-  }
-}
-
-const RelationshipRow = z.object({
-  'Parent name or TIN': z.string(),
-  'Child name or TIN': z.string(),
-  'Percentage Ownership': z.number().check(z.minimum(0)).check(z.maximum(100))
-})
-
-export interface EntityRelationship {
-  parent: string
-  child: string
-  percentageOwnership: number
-}
-
-function cleanUpRelationship(ownership: z.infer<typeof RelationshipRow>): EntityRelationship {
-  let percentageOwnership = ownership['Percentage Ownership']
-  if (percentageOwnership <= 1) {
-    percentageOwnership = percentageOwnership * 100
-  }
-  return {
-    parent: ownership['Parent name or TIN'].trim(),
-    child: ownership['Child name or TIN'].trim(),
-    percentageOwnership,
-  }
-}
-
-export interface GroupStructure {
-  entities: Entity[]
-  relationships: EntityRelationship[]
-}
+import {
+  cleanUpEntity,
+  cleanUpRelationship,
+  type Entity,
+  EntityRow,
+  type GroupStructure,
+  RelationshipRow,
+} from '@/db/models.ts'
 
 export async function parseCompanyOwnershipWorkbook(data: ArrayBuffer): Promise<GroupStructure> {
-  const workbook = new Workbook();
+  const workbook = new Workbook()
   try {
     await workbook.xlsx.load(data)
   } catch (e) {
@@ -95,7 +30,7 @@ export async function parseCompanyOwnershipWorkbook(data: ArrayBuffer): Promise<
   }
 
   function findEntity(nameOrTIN: string): Entity {
-    const entity = entities.find(entity => entity.tin === nameOrTIN || entity.name === nameOrTIN)
+    const entity = entities.find((entity) => entity.tin === nameOrTIN || entity.name === nameOrTIN)
     if (!entity) {
       throw new Error(`Entity not found: ${nameOrTIN}`)
     }
@@ -151,7 +86,9 @@ function toJson<Z extends z.ZodMiniObject, T = z.infer<Z>>(sheet: Worksheet, sch
       result.push(data as T)
     } else {
       const flatten = z.flattenError(error)
-      const fieldErrors = Object.entries(flatten.fieldErrors).map(([field, messages]) => `${field}=${messages?.join(', ')}`).join('; ')
+      const fieldErrors = Object.entries(flatten.fieldErrors)
+        .map(([field, messages]) => `${field}=${messages?.join(', ')}`)
+        .join('; ')
       throw new Error(`Validation error in row ${rowNumber} of ${sheet.name} worksheet: ${fieldErrors}`)
     }
   })

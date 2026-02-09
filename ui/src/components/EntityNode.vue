@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { Handle, Position, useVueFlow } from '@vue-flow/core'
-import type {Entity, NodeData} from "@/composables/parse.ts";
-import CountryFlag from "@/components/CountryFlag.vue";
+import CountryFlag from '@/components/CountryFlag.vue'
+import type { Entity, NodeData } from '@/db/models.ts'
 
 interface Props {
-  id: string,
+  id: string
   data: NodeData
 }
 
@@ -26,71 +26,68 @@ for (let edge of getConnectedEdges(props.id)) {
 const nodeClass = ['entity-node']
 const flagsClass = ['tax-jurisdiction-flags']
 switch (props.data.entity.type) {
-  case "Company":
+  case 'Company':
     // rectangle
     nodeClass.push('entity-node--rectangle')
-    break;
-  case "Company Hybrid":
+    break
+  case 'Company Hybrid':
     // Oval inside a rectangle
     nodeClass.push('entity-node--rectangle')
     nodeClass.push('entity-node--inner-oval')
-    break;
-  case "Partnership":
+    break
+  case 'Partnership':
     // Triangle
-    nodeClass.push("entity-node--triangle")
-    break;
-  case "Partnership Hybrid":
+    nodeClass.push('entity-node--triangle')
+    break
+  case 'Partnership Hybrid':
     // Triangle inside a rectangle
     nodeClass.push('entity-node--rectangle')
-    nodeClass.push("entity-node--triangle")
-    break;
-  case "Branch":
+    nodeClass.push('entity-node--triangle')
+    break
+  case 'Branch':
     // Oval
-    nodeClass.push("entity-node--oval")
-    break;
-  case "Trust":
+    nodeClass.push('entity-node--oval')
+    break
+  case 'Trust':
     // A Diamond
-    nodeClass.push("entity-node--diamond")
-    flagsClass.push("tax-jurisdiction-flags--diamond")
-    break;
+    nodeClass.push('entity-node--diamond')
+    flagsClass.push('tax-jurisdiction-flags--diamond')
+    break
 }
-
 </script>
 
 <template>
   <div :class="nodeClass">
-
-    <div v-if="nodeClass.some(clz => clz.endsWith('triangle'))" class="triangle-container">
+    <div v-if="nodeClass.some((clz) => clz.endsWith('triangle'))" class="triangle-container">
       <svg viewBox="0 0 100 87" preserveAspectRatio="none">
-        <polygon points="50,0 0,86.5 100,86.5" fill="transparent" stroke="#000" stroke-width="1"/>
+        <polygon points="50,0 0,86.5 100,86.5" fill="transparent" stroke="#000" stroke-width="1" />
       </svg>
-      <p class="govuk-body">{{props.data.label}}</p>
+      <p class="govuk-body">{{ props.data.label }}</p>
     </div>
-    <div v-else-if="nodeClass.some(clz => clz.endsWith('diamond'))" class="diamond-container">
+    <div v-else-if="nodeClass.some((clz) => clz.endsWith('diamond'))" class="diamond-container">
       <svg viewBox="0 0 100 100" preserveAspectRatio="none">
-        <polygon points="50,0 100,50 50,100 0,50" fill="transparent" stroke="#000" stroke-width="1"/>
+        <polygon points="50,0 100,50 50,100 0,50" fill="transparent" stroke="#000" stroke-width="1" />
       </svg>
-      <p class="govuk-body">{{props.data.label}}</p>
+      <p class="govuk-body">{{ props.data.label }}</p>
     </div>
-    <p v-else class="govuk-body">{{props.data.label}}</p>
+    <p v-else class="govuk-body">{{ props.data.label }}</p>
 
     <div :class="flagsClass">
+      <CountryFlag :country-name="props.data.entity.taxJurisdiction" />
       <CountryFlag
-        :country-name="props.data.entity.taxJurisdiction"
-      />
-      <CountryFlag
-        v-if="props.data.entity.taxJurisdictionOfIncorporation && props.data.entity.taxJurisdictionOfIncorporation !== props.data.entity.taxJurisdiction"
+        v-if="
+          props.data.entity.taxJurisdictionOfIncorporation &&
+          props.data.entity.taxJurisdictionOfIncorporation !== props.data.entity.taxJurisdiction
+        "
         :country-name="props.data.entity.taxJurisdictionOfIncorporation"
       />
     </div>
-
   </div>
   <Handle type="source" :position="Position.Bottom" v-if="source" />
   <Handle type="target" :position="Position.Top" v-if="target" />
 </template>
 
 <style scoped>
-
 .entity-node {
   position: relative;
 }
@@ -210,5 +207,4 @@ switch (props.data.entity.type) {
   bottom: 25px;
   right: 25px;
 }
-
 </style>
