@@ -10,7 +10,7 @@ import { useComputedId } from '@/composables/useComputedId.ts'
 import Fragment from '@/components/govuk/Fragment.vue'
 import ErrorMessage from '@/components/govuk/ErrorMessage.vue'
 
-const value = defineModel<string>()
+const value = defineModel<string | number>()
 const props = defineProps({
   /**
    * The ID of the input.
@@ -205,11 +205,7 @@ const normalizedFormGroupClass = computed(() => {
 </script>
 
 <template>
-  <div
-    :class="`govuk-form-group ${normalizedFormGroupClass} ${
-      hasErrorMessage ? 'govuk-form-group--error' : ''
-    }`"
-  >
+  <div :class="`govuk-form-group ${normalizedFormGroupClass} ${hasErrorMessage ? 'govuk-form-group--error' : ''}`">
     <label v-if="hasLabel" :for="computedId" class="govuk-label" :class="labelClass">
       <!-- @slot The content of the label. If content is provided in this slot, the `label` prop will be ignored. -->
       <slot name="label">
@@ -234,9 +230,7 @@ const normalizedFormGroupClass = computed(() => {
     </ErrorMessage>
     <component
       :is="computedWrapperElement"
-      :class="
-        hasPrefix || hasSuffix || hasBeforeInput || hasAfterInput ? 'govuk-input__wrapper' : ''
-      "
+      :class="hasPrefix || hasSuffix || hasBeforeInput || hasAfterInput ? 'govuk-input__wrapper' : ''"
     >
       <!-- @slot Content to add before the input. If content is provided in this slot, the `beforeInput` prop will be ignored. -->
       <slot name="before-input">

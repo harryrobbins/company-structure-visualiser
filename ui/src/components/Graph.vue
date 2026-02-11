@@ -1,33 +1,40 @@
 <script setup lang="ts">
-import { nextTick } from 'vue'
+import { nextTick, watch, ref } from 'vue'
 import { useVueFlow } from '@vue-flow/core'
 import { VueFlow } from '@vue-flow/core'
-import { Controls } from '@vue-flow/controls';
-import { useAppStore } from '@/stores/app.ts'
+import { Controls } from '@vue-flow/controls'
 import { useLayout } from '@/composables/useLayout.ts'
-import EntityNode from "@/components/EntityNode.vue";
+import EntityNode from '@/components/EntityNode.vue'
+import { entityGraph } from '@/db/graph.ts'
+import type { EntityGraph, GroupStructure } from '@/db/models.ts'
 
-const appStore = useAppStore()
+import type { CompanyMatches } from '@/api/models.ts'
+
 const { layout } = useLayout()
-const { fitView, vueFlowRef } = useVueFlow()
+const { fitView } = useVueFlow()
+
+const props = defineProps<{
+  structure: GroupStructure
+  matches?: CompanyMatches
+}>()
+
+const graph = ref<EntityGraph>()
+watch(props, ({ structure, matches = {} }) => (graph.value = entityGraph(structure, matches)), {
+  immediate: true,
+  deep: true,
+})
 
 async function layoutGraph() {
-  if (appStore.state.type == 'visualize') {
-    appStore.state.graph.nodes = layout(appStore.state.graph)
-    return nextTick(() => fitView())
+  if (graph.value) {
+    graph.value.nodes = layout(graph.value)
   }
+  await nextTick(() => fitView())
 }
 </script>
 
 <template>
-  <section class="h-200" v-if="appStore.state.type == 'visualize'">
-    <VueFlow
-      v-if="appStore.state.graph"
-      :nodes="appStore.state.graph?.nodes"
-      :edges="appStore.state.graph?.edges"
-      fit-view-on-init
-      @nodes-initialized="layoutGraph"
-    >
+  <section class="h-200">
+    <VueFlow v-if="graph" :nodes="graph.nodes" :edges="graph.edges" fit-view-on-init @nodes-initialized="layoutGraph">
       <Controls position="top-right" />
 
       <template #node-company="props">
@@ -38,7 +45,6 @@ async function layoutGraph() {
 </template>
 
 <style>
-
 .vue-flow__edge-textbg {
   fill: white;
   stroke: #000;
@@ -48,6 +54,4 @@ async function layoutGraph() {
 .vue-flow__edge-text {
   fill: #000;
 }
-
 </style>
-

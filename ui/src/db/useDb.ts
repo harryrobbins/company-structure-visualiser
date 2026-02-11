@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable, liveQuery, type Subscription } from 'dexie'
-import { isProxy, isReactive, isRef, type MaybeRefOrGetter, onScopeDispose, ref, toRaw, toValue, watch } from 'vue'
+import { isRef, type MaybeRefOrGetter, onScopeDispose, ref, toValue, watch } from 'vue'
 import type { VueRef } from '@/vue-extra.ts'
 import type { Visualization } from '@/db/models.ts'
 
@@ -10,26 +10,6 @@ export const db = new Dexie('company_structure_v1') as Dexie & {
 db.version(1).stores({
   visualizations: '++id',
 })
-
-export function deepToRaw<T>(sourceObj: T): T {
-  const objectIterator = (input: any): any => {
-    if (Array.isArray(input)) {
-      return input.map((item) => objectIterator(item))
-    }
-    if (isRef(input) || isReactive(input) || isProxy(input)) {
-      return objectIterator(toRaw(input))
-    }
-    if (input && typeof input === 'object') {
-      return Object.keys(input).reduce((acc, key) => {
-        acc[key as keyof typeof acc] = objectIterator(input[key])
-        return acc
-      }, {} as T)
-    }
-    return input
-  }
-
-  return objectIterator(sourceObj)
-}
 
 export type UseDb<Result> = {
   result: VueRef<Result | null>

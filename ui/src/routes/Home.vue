@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Button from '@/components/govuk/Button.vue'
-import NumberedSteps from '@/components/NumberedSteps.vue'
-import NumberedStep from '@/components/NumberedStep.vue'
+import NumberedSteps from '@/components/govuk/NumberedSteps.vue'
+import NumberedStep from '@/components/govuk/NumberedStep.vue'
 </script>
 
 <template>

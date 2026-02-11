@@ -1,5 +1,6 @@
 import type { Edge, Node } from '@vue-flow/core'
 import * as z from 'zod/mini'
+import type { CompanyMatches } from '@/api/models.ts'
 
 export interface NodeData {
   label: string
@@ -11,12 +12,20 @@ export interface EntityGraph {
   edges: Edge<{ relationship: EntityRelationship }>[]
 }
 
+export const ENTITY_TYPES = [
+  'Company',
+  'Company Hybrid',
+  'Partnership',
+  'Partnership Hybrid',
+  'Branch',
+  'Trust',
+] as const
 export const EntityRow = z.object({
   'Tax Jurisdiction': z.string(),
   'Constituent Entities Resident in Tax Jurisdiction': z.string(),
   'Constituent Entities TIN': z.coerce.string(),
   'Tax Jurisdiction of Incorporation if Different from Residence': z.optional(z.string()),
-  'Entity type': z.enum(['Company', 'Company Hybrid', 'Partnership', 'Partnership Hybrid', 'Branch', 'Trust']),
+  'Entity type': z.enum(ENTITY_TYPES),
 })
 export type EntityType = z.infer<typeof EntityRow>['Entity type']
 
@@ -78,6 +87,7 @@ export interface Visualization {
   date: Date
   filename: string
   structure: GroupStructure
+  matches?: CompanyMatches
 }
 
 export function visualizationStatus(visualization: Visualization) {

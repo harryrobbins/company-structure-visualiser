@@ -3,6 +3,7 @@ import { db, type UseDb, useDb } from '@/db/useDb.ts'
 import { type MaybeRefOrGetter, ref, toValue } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Visualization } from '@/db/models.ts'
+import type { CompanyMatches } from '@/api/models.ts'
 
 export function useStartVisualization() {
   const isLoading = ref(false)
@@ -15,8 +16,8 @@ export function useStartVisualization() {
     try {
       const data = await file.arrayBuffer()
       const structure = await parseCompanyOwnershipWorkbook(data)
-      const visualizationId = await db.visualizations.add({ structure, filename: file.name, date: new Date() })
-      await router.push({ name: 'visualization', params: { visualizationId } })
+      const uploadId = await db.visualizations.add({ structure, filename: file.name, date: new Date() })
+      await router.push({ name: 'validate', params: { uploadId } })
     } catch (e) {
       error.value = e instanceof Error ? e.message : String(e)
       console.error(e)
@@ -66,4 +67,55 @@ export function useDeleteVisualization() {
   }
 
   return { deleteVisualization, isLoading, error }
+}
+
+export function useApplyCompanyMatches() {
+  const router = useRouter()
+  const isLoading = ref(false)
+  const error = ref<string | null>(null)
+
+  async function applyCompanyMatches(id: number, matches: CompanyMatches) {
+    isLoading.value = true
+    error.value = null
+    try {
+      // Get the current visualization
+      const visualization = await db.visualizations.get(id)
+      if (!visualization) {
+        throw new Error('Visualization not found')
+      }
+
+      // Update entities with matched company data
+      const updatedEntities = visualization.structure.entities.map((entity) => {
+        const matchResult = matches[entity.id] || matches[entity.name] || matches[entity.tin]
+
+        if (matchResult?.recommended_match) {
+          return {
+            ...entity,
+            name: matchResult.recommended_match.CompanyName,
+            tin: matchResult.recommended_match.CompanyNumber,
+          }
+        }
+
+        return entity
+      })
+
+      // Update the visualization with both the matches and the updated structure
+      await db.visualizations.update(id, {
+        matches,
+        structure: {
+          ...visualization.structure,
+          entities: updatedEntities,
+        },
+      })
+
+      await router.push({ name: 'visualize', params: { uploadId: id } })
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : String(e)
+      console.error(e)
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  return { applyCompanyMatches, isLoading, error }
 }

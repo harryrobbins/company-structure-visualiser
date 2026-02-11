@@ -41,7 +41,7 @@ class CompaniesHouseDB:
         print(f"Connecting to DuckDB at: {self.db_path}")
         self.con = duckdb.connect(database=self.db_path, read_only=False)
         try:
-            duckdb_fts_extension_path = str(Path(sysconfig.get_path('purelib')) / "duckdb_extension_fts" / "extensions" / "v1.3.2" / "fts.duckdb_extension")
+            duckdb_fts_extension_path = str(Path(sysconfig.get_path('purelib')) / "duckdb_extension_fts" / "extensions" / "v1.4.3" / "fts.duckdb_extension")
             print("Installing and loading DuckDB FTS extension from:", duckdb_fts_extension_path)
             self.con.execute(f"FORCE INSTALL '{duckdb_fts_extension_path}';")
             self.con.execute(f"LOAD '{duckdb_fts_extension_path}';")

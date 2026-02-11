@@ -52,6 +52,7 @@ const props = defineProps({
    * Optional ARIA role attribute to add to the fieldset container.
    */
   fieldsetRole: String,
+
   //fieldset legend props
   /**
    * Text to use within the legend. If content is provided in the `legend` slot, this prop will be ignored.
@@ -109,11 +110,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue'])
 
-function updateModelValue(
-  newValue: any | undefined,
-  oldValue: any | undefined,
-  exclusive: boolean = false,
-) {
+function updateModelValue(newValue: any | undefined, oldValue: any | undefined, exclusive: boolean = false) {
   if (newValue === undefined && oldValue !== undefined) {
     // If the new value is undefined and the old value is not, the checkbox has been unchecked. Remove its old value from the array
     value.value = value.value.filter((v) => !looseEqual(v, oldValue))
@@ -183,11 +180,7 @@ const normalizedFormGroupClass = computed(() => {
 </script>
 
 <template>
-  <div
-    :class="`govuk-form-group ${normalizedFormGroupClass} ${
-      hasErrorMessage ? 'govuk-form-group--error' : ''
-    }`"
-  >
+  <div :class="`govuk-form-group ${normalizedFormGroupClass} ${hasErrorMessage ? 'govuk-form-group--error' : ''}`">
     <Fieldset
       :described-by="computedDescribedBy"
       :class="fieldsetClass"

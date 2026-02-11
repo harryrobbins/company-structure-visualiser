@@ -17,7 +17,7 @@ function intParam(name: string): number | null {
   return null
 }
 
-const { result: visualization } = useVisualization(() => intParam('visualizationId'))
+const { result: visualization } = useVisualization(() => intParam('uploadId'))
 
 interface Breadcrumb {
   text: string
@@ -28,16 +28,30 @@ const breadcrumbs = ref<Breadcrumb[]>([])
 
 watchEffect(async () => {
   const crumbs: Breadcrumb[] = [{ text: 'Visualize company structures', location: { name: 'home' } }]
-  const visualizationId = intParam('visualizationId')
+  const uploadId = intParam('uploadId')
 
   function uploadCrumb() {
     crumbs.push({ text: 'Upload company info', location: { name: 'upload' } })
   }
 
-  function visualizationCrumb() {
+  function validateCrumb() {
     crumbs.push({
-      text: visualization?.value?.filename || 'Visualize',
-      location: { name: 'visualize', params: { visualizationId } },
+      text: visualization?.value?.filename || 'Validate Upload',
+      location: { name: 'validate', params: { uploadId } },
+    })
+  }
+
+  function matchCrumb() {
+    crumbs.push({
+      text: 'Match companies',
+      location: { name: 'match', params: { uploadId } },
+    })
+  }
+
+  function visualizeCrumb() {
+    crumbs.push({
+      text: 'Visualize',
+      location: { name: 'visualize', params: { uploadId } },
     })
   }
 
@@ -45,9 +59,19 @@ watchEffect(async () => {
     case 'upload':
       uploadCrumb()
       break
-    case 'visualization':
+    case 'validate':
       uploadCrumb()
-      visualizationCrumb()
+      validateCrumb()
+      break
+    case 'match':
+      uploadCrumb()
+      validateCrumb()
+      matchCrumb()
+      break
+    case 'visualize':
+      uploadCrumb()
+      validateCrumb()
+      visualizeCrumb()
       break
   }
 

@@ -57,7 +57,7 @@ watch(
       <tr v-for="visualization in visualizations" :key="visualization.id" class="govuk-table__row">
         <th class="govuk-table__header" scope="row">
           <RouterLink
-            :to="{ name: 'visualization', params: { visualizationId: visualization.id } }"
+            :to="{ name: 'validate', params: { uploadId: visualization.id } }"
             class="govuk-link govuk-link--no-visited-state"
           >
             {{ visualization.filename }}

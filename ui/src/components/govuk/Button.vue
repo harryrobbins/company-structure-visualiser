@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { type RouteLocationRaw, RouterLink } from 'vue-router'
+import { OhVueIcon } from 'oh-vue-icons'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const buttonElement = ref(null)
 
@@ -14,6 +16,8 @@ interface ButtonProps {
   name?: string
   type?: 'submit' | 'reset' | 'button'
   value?: string | number | readonly string[]
+  loading?: boolean
+  loadingText?: string
 }
 
 const props = defineProps<ButtonProps>()
@@ -62,8 +66,8 @@ function handleKeyDownSpace(): void {
       'govuk-button--warning': variant === 'warning',
       'govuk-button--start': isStartButton,
     }"
-    :disabled="disabled ? 'disabled' : null"
-    :aria-disabled="disabled ? 'true' : null"
+    :disabled="disabled || loading ? 'disabled' : null"
+    :aria-disabled="disabled || loading ? 'true' : null"
     :role="isLink ? 'button' : null"
     :draggable="isLink ? 'false' : null"
     :type="isLink ? null : type"
@@ -71,7 +75,7 @@ function handleKeyDownSpace(): void {
     :href="computedElement === 'a' ? href : null"
     v-on:keydown.space="handleKeyDownSpace"
   >
-    <template v-if="!isInput">
+    <template v-if="!isInput && !loading">
       <slot />
       <svg
         v-if="isStartButton"
@@ -86,6 +90,8 @@ function handleKeyDownSpace(): void {
         <path fill="currentColor" d="M0 0h13l20 20-20 20H0l20-20z" />
       </svg>
     </template>
+
+    <LoadingSpinner v-if="loading" :text="loadingText" />
   </component>
 </template>
 

@@ -4,7 +4,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { CompanyMatch } from '@/api'
+
+import type { CompanyMatch } from '@/api/models.ts'
 
 interface Props {
   company: CompanyMatch
@@ -21,11 +22,9 @@ const formattedAddress = computed(() => {
     props.company['RegAddress.PostTown'],
     props.company['RegAddress.County'],
     props.company['RegAddress.Country'],
-    props.company['RegAddress.PostCode']
+    props.company['RegAddress.PostCode'],
   ]
 
-  return addressFields
-    .filter(field => field && field.trim())
-    .join('<br>')
+  return addressFields.filter((field) => field && field.trim()).join('<br>')
 })
 </script>
