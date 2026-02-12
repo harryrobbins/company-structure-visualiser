@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { nextTick, watch, ref } from 'vue'
-import { useVueFlow } from '@vue-flow/core'
+import { StepEdge, useVueFlow, type BaseEdgeProps, BezierEdge, StraightEdge } from '@vue-flow/core'
 import { VueFlow, Panel } from '@vue-flow/core'
 import Controls from '@/components/visualization/Controls.vue'
 import { useLayout } from '@/composables/useLayout.ts'
@@ -21,7 +21,7 @@ const { fitView } = useVueFlow()
 const edgeTypeOptions = [
   { value: 'step', label: 'Step' },
   { value: 'straight', label: 'Straight' },
-  { value: 'simplebezier', label: 'Curved' },
+  { value: 'bezier', label: 'Curved' },
 ] as const
 
 type EdgeType = (typeof edgeTypeOptions)[number]['value']
@@ -93,6 +93,12 @@ function entityGraph({ entities, relationships }: GroupStructure, matches: Compa
     })),
   }
 }
+
+const DEFAULT_EDGE_PROPS: Partial<BaseEdgeProps> = {
+  labelBgPadding: [10, 8],
+  labelBgStyle: { fill: 'var(--color-white)', stroke: 'var(--color-black)', strokeWidth: 2 },
+  labelStyle: { fill: 'var(--color-black)', fontSize: '16px' },
+}
 </script>
 
 <template>
@@ -111,7 +117,12 @@ function entityGraph({ entities, relationships }: GroupStructure, matches: Compa
     </div>
 
     <GvCheckboxes v-model="toggleControls" form-group-class="mb-0!" size="small">
-      <GvCheckbox value="showEdgeLabels" id="show-edge-labels" label="Show edge labels" />
+      <GvCheckbox
+        value="showEdgeLabels"
+        id="show-edge-labels"
+        label="Show edge labels"
+        label-class="whitespace-nowrap"
+      />
     </GvCheckboxes>
 
     <GvButton @click="layoutGraph" variant="secondary" class="mb-0!">Reset layout</GvButton>
@@ -133,6 +144,18 @@ function entityGraph({ entities, relationships }: GroupStructure, matches: Compa
         </Panel>
       </template>
 
+      <template #edge-step="props">
+        <StepEdge v-bind="{ ...props, ...DEFAULT_EDGE_PROPS }" />
+      </template>
+
+      <template #edge-bezier="props">
+        <BezierEdge v-bind="{ ...props, ...DEFAULT_EDGE_PROPS }" />
+      </template>
+
+      <template #edge-straight="props">
+        <StraightEdge v-bind="{ ...props, ...DEFAULT_EDGE_PROPS }" />
+      </template>
+
       <template #node-company="props">
         <EntityNode :id="props.id" :data="props.data" />
       </template>
@@ -144,24 +167,6 @@ function entityGraph({ entities, relationships }: GroupStructure, matches: Compa
 .vue-flow__edge-path {
   stroke: var(--color-black);
   stroke-width: 2px;
-}
-
-.vue-flow__edge-textwrapper {
-  fill: white;
-}
-.vue-flow__edge-textbg {
-  fill: white;
-  stroke: var(--color-black);
-  stroke-width: 2px;
-}
-
-.vue-flow__edge-text {
-  fill: var(--color-black);
-}
-
-/* Prevent checkbox labels from wrapping */
-.govuk-checkboxes__label {
-  white-space: nowrap;
 }
 
 .vue-flow__handle {
