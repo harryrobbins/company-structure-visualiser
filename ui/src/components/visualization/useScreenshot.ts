@@ -7,6 +7,13 @@ export function useScreenshot() {
   async function capture(el: HTMLElement) {
     const fileName = `vue-flow-screenshot-${Date.now()}`
 
+    // HACK force edges to have a black stroke, otherwise they are excluded from the image
+    for (const edgePath of el.querySelectorAll('svg path.vue-flow__edge-path')) {
+      edgePath.setAttribute('stroke', 'black')
+      edgePath.setAttribute('stroke-width', '2px')
+      edgePath.setAttribute('fill', 'none')
+    }
+
     let data: string | null = null
     error.value = null
     try {
@@ -18,17 +25,6 @@ export function useScreenshot() {
           borderWidth: '0',
         },
         filter(node) {
-          console.log(node)
-          if (node.nodeName === 'svg') {
-            // HACK force edges to have a black stroke, otherwise they are excluded from the image
-            const edgePath = node.querySelector('path.vue-flow__edge-path')
-            if (edgePath) {
-              edgePath.setAttribute('stroke', 'black')
-              edgePath.setAttribute('stroke-width', '2px')
-              edgePath.setAttribute('fill', 'none')
-            }
-          }
-
           return !node.classList || !node.classList.contains('vue-flow__panel')
         },
       })
