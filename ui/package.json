@@ -27,6 +27,7 @@
     "exceljs": "^4.4.0",
     "flag-icons": "^7.5.0",
     "hmrc-frontend": "^6.113.0",
+    "html-to-image": "^1.11.13",
     "i18n-iso-countries": "^7.14.0",
     "oh-vue-icons": "1.0.0-rc3",
     "openapi-fetch": "^0.15.0",
