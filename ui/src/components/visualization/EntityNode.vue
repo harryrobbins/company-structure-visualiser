@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Handle, Position, useVueFlow } from '@vue-flow/core'
-import CountryFlag from '@/components/CountryFlag.vue'
-import type { Entity, NodeData } from '@/db/models.ts'
+import CountryFlag from '@/components/visualization/CountryFlag.vue'
+import type { NodeData } from '@/db/models.ts'
 
 interface Props {
   id: string
@@ -14,7 +14,7 @@ const { getConnectedEdges } = useVueFlow()
 
 let source = false
 let target = false
-for (let edge of getConnectedEdges(props.id)) {
+for (const edge of getConnectedEdges(props.id)) {
   if (edge.source === props.id) {
     source = true
   }

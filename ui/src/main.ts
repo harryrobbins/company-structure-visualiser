@@ -2,7 +2,6 @@ import './main.css'
 import './govuk.scss'
 import { createApp } from 'vue'
 import App from './App.vue'
-import { GovUkVue } from 'govuk-vue'
 import { registerLocale } from 'i18n-iso-countries'
 import en from 'i18n-iso-countries/langs/en.json'
 import { addIcons } from 'oh-vue-icons'
@@ -77,5 +76,4 @@ createApp(App)
       },
     },
   })
-  .use(GovUkVue)
   .mount('#app')

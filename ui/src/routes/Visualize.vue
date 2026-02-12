@@ -4,7 +4,7 @@ import { computed } from 'vue'
 import { useVisualization } from '@/db/useVisualization.ts'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import ErrorSummary from '@/components/govuk/ErrorSummary.vue'
-import Graph from '@/components/Graph.vue'
+import Graph from '@/components/visualization/Graph.vue'
 
 const route = useRoute()
 const uploadId = computed(() => parseInt(route.params.uploadId as string))
@@ -15,6 +15,8 @@ const { result: visualization, isLoading, error } = useVisualization(uploadId)
   <LoadingSpinner v-if="isLoading" />
   <ErrorSummary v-else-if="error" title="Error loading visualization" :description="error" />
   <div v-else-if="visualization">
+    <h1 class="govuk-heading-xl">Visualization</h1>
+    <p class="govuk-body">View company structure and relationships.</p>
     <Graph :structure="visualization.structure" />
   </div>
 </template>
