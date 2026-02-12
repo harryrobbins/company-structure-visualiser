@@ -94,13 +94,13 @@ switch (props.data.entity.type) {
 
 .entity-node--rectangle {
   padding: 1rem;
-  border: 1px solid #000;
+  border: 2px solid #000;
 }
 
 .entity-node--oval {
   border-radius: 50%;
   padding: 1rem;
-  border: 1px solid #000;
+  border: 2px solid #000;
 }
 
 .entity-node--inner-oval::before {
@@ -111,7 +111,7 @@ switch (props.data.entity.type) {
   transform: translate(-50%, -50%);
   width: 100%;
   height: 100%;
-  border: 1px solid #000;
+  border: 2px solid #000;
   border-radius: 50%;
   background-color: transparent;
 }

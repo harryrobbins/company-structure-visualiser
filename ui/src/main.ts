@@ -18,6 +18,9 @@ import {
   FaExclamationTriangle,
   FaExclamationCircle,
   FaUser,
+  MdZoomin,
+  MdZoomout,
+  MdZoomoutmap,
 } from 'oh-vue-icons/icons'
 
 addIcons(
@@ -30,6 +33,9 @@ addIcons(
   FaExclamationTriangle,
   FaExclamationCircle,
   FaUser,
+  MdZoomin,
+  MdZoomout,
+  MdZoomoutmap,
 )
 registerLocale(en)
 

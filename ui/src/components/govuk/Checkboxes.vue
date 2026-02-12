@@ -189,10 +189,6 @@ const normalizedFormGroupClass = computed(() => {
       :legend-class="legendClass"
       :legend-is-page-heading="legendIsPageHeading"
     >
-      <template #legend>
-        <!-- @slot The content of the legend. If content is provided in this slot, the `legend` prop will be ignored. -->
-        <slot name="legend" />
-      </template>
       <div v-if="hasHint" class="govuk-hint" :class="hintClass" :id="hintId">
         <!-- @slot The content of the hint. If content is provided in this slot, the `hint` prop will be ignored. -->
         <slot name="hint">{{ hint }}</slot>
