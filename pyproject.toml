@@ -17,13 +17,10 @@ dependencies = [
     "duckdb==1.4.3",
     "rich>=14.3.2", # For nice progress bars during download
     "duckdb-extension-fts==1.4.3",
-    "pydantic>=2.12.5",
     "httpx>=0.28.1",
-    "fastapi>=0.128.7",
+    "fastapi>=0.128.8",
     "jinja2>=3.1.6",
-    "pyarrow>=23.0.0",
     "openai>=2.20.0",
-    "pydantic-settings>=2.12.0",
     "pydantic-settings>=2.12.0",
     "uvicorn>=0.40.0",
 ]
