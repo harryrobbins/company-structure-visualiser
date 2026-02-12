@@ -20,3 +20,4 @@ run_pnpm.sh
 !backend/tests/companies_house_sample_data.csv
 
 static/
+templates/
