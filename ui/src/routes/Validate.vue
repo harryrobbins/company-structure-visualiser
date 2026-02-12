@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { useVisualization } from '@/db/useVisualization.ts'
+import { useUpdateEntity, useVisualization } from '@/db/useVisualization.ts'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import ErrorSummary from '@/components/govuk/ErrorSummary.vue'
 import GroupStructureTable from '@/components/GroupStructureTable.vue'
@@ -10,13 +10,16 @@ import Button from '@/components/govuk/Button.vue'
 const route = useRoute()
 const uploadId = computed(() => parseInt(route.params.uploadId as string))
 const { result: visualization, isLoading, error } = useVisualization(uploadId)
+const { updateEntities, isLoading: updateLoading, error: updateError } = useUpdateEntity(uploadId)
 </script>
 
 <template>
-  <LoadingSpinner v-if="isLoading" />
+  <LoadingSpinner v-if="isLoading || updateLoading" />
   <ErrorSummary v-else-if="error" title="Error loading visualization" :description="error" />
   <div v-else-if="visualization">
-    <GroupStructureTable :entities="visualization.structure.entities" :editable="true" />
+    <ErrorSummary v-if="updateError" title="Error loading visualization" :description="updateError" />
+
+    <GroupStructureTable :entities="visualization.structure.entities" @save="updateEntities" />
 
     <p class="govuk-body">These companies are the ones I want to visualize.</p>
     <Button :to="{ name: 'visualize', params: { uploadId } }"> Confirm and visualize </Button>

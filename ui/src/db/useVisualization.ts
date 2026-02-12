@@ -2,7 +2,7 @@ import { parseCompanyOwnershipWorkbook } from '@/composables/parse.ts'
 import { db, type UseDb, useDb } from '@/db/useDb.ts'
 import { type MaybeRefOrGetter, ref, toValue } from 'vue'
 import { useRouter } from 'vue-router'
-import type { Visualization } from '@/db/models.ts'
+import type { Entity, Visualization } from '@/db/models.ts'
 import type { CompanyMatches } from '@/api/models.ts'
 
 export function useStartVisualization() {
@@ -69,19 +69,69 @@ export function useDeleteVisualization() {
   return { deleteVisualization, isLoading, error }
 }
 
-export function useApplyCompanyMatches() {
-  const router = useRouter()
+export function useUpdateEntity(idRef: MaybeRefOrGetter<number>) {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
-  async function applyCompanyMatches(id: number, matches: CompanyMatches) {
+  async function updateEntity(entity: Entity) {
+    const id = toValue(idRef)
     isLoading.value = true
     error.value = null
     try {
       // Get the current visualization
       const visualization = await db.visualizations.get(id)
       if (!visualization) {
-        throw new Error('Visualization not found')
+        error.value = 'Visualization not found'
+        return
+      }
+
+      // Update entities with new data
+      const updatedEntities = visualization.structure.entities.map((e) => {
+        return e.id === entity.id
+          ? {
+              ...e,
+              name: entity.name,
+              tin: entity.tin,
+              type: entity.type,
+              taxJurisdiction: entity.taxJurisdiction,
+              taxJurisdictionOfIncorporation: entity.taxJurisdictionOfIncorporation,
+            }
+          : e
+      })
+
+      // Update the visualization with the updated structure
+      await db.visualizations.update(id, {
+        structure: {
+          ...visualization.structure,
+          entities: updatedEntities,
+        },
+      })
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : String(e)
+      console.error(e)
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  return { updateEntities: updateEntity, isLoading, error }
+}
+
+export function useApplyCompanyMatches(idRef: MaybeRefOrGetter<number>) {
+  const router = useRouter()
+  const isLoading = ref(false)
+  const error = ref<string | null>(null)
+
+  async function applyCompanyMatches(matches: CompanyMatches) {
+    const id = toValue(idRef)
+    isLoading.value = true
+    error.value = null
+    try {
+      // Get the current visualization
+      const visualization = await db.visualizations.get(id)
+      if (!visualization) {
+        error.value = 'Visualization not found'
+        return
       }
 
       // Update entities with matched company data

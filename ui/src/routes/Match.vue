@@ -14,11 +14,7 @@ const {
   applyCompanyMatches,
   isLoading: applyCompanyMatchesLoading,
   error: applyCompanyMatchesError,
-} = useApplyCompanyMatches()
-
-function updateMatches(matches: CompanyMatches) {
-  applyCompanyMatches(uploadId.value, matches)
-}
+} = useApplyCompanyMatches(uploadId)
 </script>
 
 <template>
@@ -37,7 +33,7 @@ function updateMatches(matches: CompanyMatches) {
       :description="applyCompanyMatchesError"
     />
 
-    <CompanySearch :visualization="visualization" @update="updateMatches" />
+    <CompanySearch :visualization="visualization" @update="applyCompanyMatches" />
     <p>
       <RouterLink :to="{ name: 'visualize', params: { uploadId } }" class="govuk-link govuk-link--no-visited-state">
         Cancel and return to visualization

@@ -14,7 +14,7 @@ interface Props {
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  save: [entities: Entity[]]
+  save: [entity: Entity]
 }>()
 
 const originalEntities = ref<Entity[]>(deepToRaw(props.entities))
@@ -35,12 +35,13 @@ function startEditEntity(index: number) {
 }
 
 function confirmEditEntity() {
-  if (editingEntity.value === null) {
+  if (editingEntity.value === null || !(editingEntity.value in entities.value)) {
     return
   }
+  const toUpdate = deepToRaw(entities.value[editingEntity.value])!
   originalEntities.value = deepToRaw(entities.value)
   editingEntity.value = null
-  emit('save', entities.value)
+  emit('save', toUpdate)
 }
 
 function cancelEditEntity() {
