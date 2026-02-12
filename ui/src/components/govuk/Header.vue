@@ -55,12 +55,14 @@ const { feedbackUrl } = appConfig()
   </header>
 
   <div class="govuk-phase-banner">
-    <p class="govuk-phase-banner__content px-2 lg:px-4">
-      <strong class="govuk-tag govuk-phase-banner__content__tag"> Beta </strong>
-      <span class="govuk-phase-banner__text">
-        This is a new service. Help us improve it and
-        <a class="govuk-link" target="_blank" :href="feedbackUrl">give your feedback (opens in new tab)</a>.
-      </span>
-    </p>
+    <div class="govuk-width-container container!">
+      <p class="govuk-phase-banner__content">
+        <strong class="govuk-tag govuk-phase-banner__content__tag"> Beta </strong>
+        <span class="govuk-phase-banner__text">
+          This is a new service. Help us improve it and
+          <a class="govuk-link" target="_blank" :href="feedbackUrl">give your feedback (opens in new tab)</a>.
+        </span>
+      </p>
+    </div>
   </div>
 </template>
