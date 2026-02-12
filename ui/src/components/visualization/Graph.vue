@@ -3,7 +3,7 @@ import { nextTick, watch, ref } from 'vue'
 import { StepEdge, useVueFlow, type BaseEdgeProps, BezierEdge, StraightEdge } from '@vue-flow/core'
 import { VueFlow, Panel } from '@vue-flow/core'
 import Controls from '@/components/visualization/Controls.vue'
-import { useLayout } from '@/composables/useLayout.ts'
+import { useLayout } from '@/components/visualization/useLayout.ts'
 import EntityNode from '@/components/visualization/EntityNode.vue'
 import type { EntityGraph, GroupStructure } from '@/db/models.ts'
 
