@@ -98,6 +98,7 @@ const DEFAULT_EDGE_PROPS: Partial<BaseEdgeProps> = {
   labelBgPadding: [10, 8],
   labelBgStyle: { fill: 'var(--color-white)', stroke: 'var(--color-black)', strokeWidth: 2 },
   labelStyle: { fill: 'var(--color-black)', fontSize: '16px' },
+  interactionWidth: 0,
 }
 </script>
 

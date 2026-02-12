@@ -15,10 +15,20 @@ export function useScreenshot() {
         skipFonts: true,
         backgroundColor: 'white',
         style: {
-          border: 'none',
+          borderWidth: '0',
         },
-        skipAutoScale: true,
         filter(node) {
+          console.log(node)
+          if (node.nodeName === 'svg') {
+            // HACK force edges to have a black stroke, otherwise they are excluded from the image
+            const edgePath = node.querySelector('path.vue-flow__edge-path')
+            if (edgePath) {
+              edgePath.setAttribute('stroke', 'black')
+              edgePath.setAttribute('stroke-width', '2px')
+              edgePath.setAttribute('fill', 'none')
+            }
+          }
+
           return !node.classList || !node.classList.contains('vue-flow__panel')
         },
       })
