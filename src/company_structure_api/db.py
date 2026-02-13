@@ -4,16 +4,7 @@ import zipfile
 import logging
 from pathlib import Path
 from typing import Optional
-
 import duckdb
-import httpx
-from rich.progress import (
-    BarColumn,
-    DownloadColumn,
-    Progress,
-    TimeRemainingColumn,
-    TransferSpeedColumn,
-)
 
 from company_structure_api.models import CompanyMatch
 from company_structure_api.models import Company, PYDANTIC_TO_DUCKDB
@@ -117,11 +108,7 @@ class CompaniesHouseDB:
         data_dir = Path(config.data_dir)
         data_dir.mkdir(exist_ok=True)
 
-        if config.data_source.startswith(("http://", "https")):
-            zip_path = data_dir / "BasicCompanyData.zip"
-            await self._download_file(config.data_source, zip_path)
-            csv_file_path = self._unzip_first_file(zip_path, data_dir)
-        elif source_path.is_file() and source_path.suffix == ".zip":
+        if source_path.is_file() and source_path.suffix == ".zip":
             csv_file_path = self._unzip_first_file(source_path, data_dir)
         elif source_path.is_file() and source_path.suffix == ".csv":
             csv_file_path = source_path
@@ -167,20 +154,8 @@ class CompaniesHouseDB:
         )
         logger.info("FTS index created successfully.")
 
-    async def _download_file(self, url: str, dest_path: Path):
-        async with httpx.AsyncClient() as client:
-            async with client.stream("GET", url) as r:
-                r.raise_for_status()
-                total_size = int(r.headers.get("content-length", 0))
-                with Progress("[progress.description]{task.description}", BarColumn(), DownloadColumn(),
-                              TransferSpeedColumn(), "ETA:", TimeRemainingColumn()) as progress:
-                    task = progress.add_task(f"Downloading {dest_path.name}", total=total_size)
-                    with open(dest_path, "wb") as f:
-                        async for chunk in r.aiter_bytes(chunk_size=8192):
-                            f.write(chunk)
-                            progress.update(task, advance=len(chunk))
-
-    def _unzip_first_file(self, zip_path: Path, extract_dir: Path) -> Path:
+    @staticmethod
+    def _unzip_first_file(zip_path: Path, extract_dir: Path) -> Path:
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             file_to_extract = zip_ref.namelist()[0]
             zip_ref.extract(file_to_extract, extract_dir)
