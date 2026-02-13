@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Optional, Dict
+from typing import List, Dict, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 # Define the data structure for a company using Pydantic.
@@ -74,3 +74,37 @@ PYDANTIC_TO_DUCKDB = {
     float: 'DOUBLE',
     bool: 'BOOLEAN'
 }
+
+class CompanyMatch(Company):
+    score: float = Field(description="Relevance score of the match")
+
+class CompanyMatchRequest(BaseModel):
+    """
+    Defines the structure for the company matching request.
+    It expects a list of one or more company names to search for.
+    """
+
+    company_names: List[str] = Field(
+        ...,
+        min_length=1,
+        description="A non-empty list of company names to find matches for.",
+    )
+
+
+class CompanyMatchResult(BaseModel):
+    """
+    Represents the result of a company match, including a recommended match
+    and a list of other potential matches.
+    """
+    recommended_match: Optional[CompanyMatch] = None
+    other_matches: List[CompanyMatch]
+
+
+class CompanyMatchResponse(BaseModel):
+    """
+    Defines the response structure for the company matching endpoint.
+    The keys of the 'matches' dictionary are the original search terms.
+    The values are objects containing the recommended match and other matches.
+    """
+
+    matches: Dict[str, CompanyMatchResult]

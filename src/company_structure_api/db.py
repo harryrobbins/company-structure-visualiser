@@ -1,10 +1,12 @@
+import os
 import sysconfig
 import zipfile
+import logging
 from pathlib import Path
 from typing import Optional
 
 import duckdb
-import requests
+import httpx
 from rich.progress import (
     BarColumn,
     DownloadColumn,
@@ -13,10 +15,48 @@ from rich.progress import (
     TransferSpeedColumn,
 )
 
-from api.models import CompanyMatch
-from .models import Company, PYDANTIC_TO_DUCKDB
-from config import settings
+from company_structure_api.models import CompanyMatch
+from company_structure_api.models import Company, PYDANTIC_TO_DUCKDB
+from company_structure_api.config import Settings
 
+logger = logging.getLogger(__name__)
+
+async def initialize_database(config: Settings) -> CompaniesHouseDB:
+    """
+    Initializes the database. If the DB file doesn't exist or if a force
+    recreation is requested, it builds the DB from the specified data source.
+    """
+    Path(config.db_path).parent.mkdir(exist_ok=True)
+    db_exists = os.path.exists(config.db_path)
+
+    if config.force_recreate_db and db_exists:
+        logger.info(f"FORCE_RECREATE_DB is true. Deleting existing database at {config.db_path}")
+        os.remove(config.db_path)
+        db_exists = False
+
+    if not db_exists:
+        logger.info(f"Database not found at '{config.db_path}'.")
+        if not os.path.exists(config.data_source):
+            logger.exception(f"FATAL: Data source not found at '{config.data_source}'. Cannot create database.")
+            raise
+
+        logger.info(f"Creating database from source: '{config.data_source}'...")
+        temp_instance = CompaniesHouseDB(db_path=config.db_path)
+        try:
+            with temp_instance as db:
+                await db.create_database_from_source(config)
+            logger.info("Database created successfully.")
+        except Exception:
+            logger.exception(f"FATAL: Failed to create database from '{config.data_source}'")
+            if os.path.exists(config.db_path):
+                os.remove(config.db_path)
+            raise
+
+    logger.info(f"Connecting to database at '{config.db_path}'...")
+    db_instance = CompaniesHouseDB(db_path=config.db_path)
+    db_instance.connect()
+    logger.info("Database connection successful.")
+    return db_instance
 
 class CompaniesHouseDB:
     COMPANIES_TABLE_NAME = "companies"
@@ -35,28 +75,26 @@ class CompaniesHouseDB:
 
     def connect(self):
         if self.con:
-            print("Already connected.")
+            logger.info("Already connected.")
             return
 
-        print(f"Connecting to DuckDB at: {self.db_path}")
+        logger.info(f"Connecting to DuckDB at: {self.db_path}")
         self.con = duckdb.connect(database=self.db_path, read_only=False)
         try:
             duckdb_fts_extension_path = str(Path(sysconfig.get_path('purelib')) / "duckdb_extension_fts" / "extensions" / "v1.4.3" / "fts.duckdb_extension")
-            print("Installing and loading DuckDB FTS extension from:", duckdb_fts_extension_path)
+            logger.info(f"Installing and loading DuckDB FTS extension from: {duckdb_fts_extension_path}")
             self.con.execute(f"FORCE INSTALL '{duckdb_fts_extension_path}';")
             self.con.execute(f"LOAD '{duckdb_fts_extension_path}';")
-            print("FTS extension installed and loaded successfully.")
-        except Exception as e:
-            print(
-                f"Failed to install or load DuckDB FTS extension. Error: {e}"
-            )
+            logger.info("FTS extension installed and loaded successfully.")
+        except Exception:
+            logger.exception("Failed to install or load DuckDB FTS extension.")
             raise
 
     def disconnect(self):
         if self.con:
             self.con.close()
             self.con = None
-            print("Database connection closed.")
+            logger.info("Database connection closed.")
 
     def table_exists(self, table_name: str) -> bool:
         """Checks if a table exists in the database."""
@@ -68,31 +106,31 @@ class CompaniesHouseDB:
         except duckdb.CatalogException:
             return False
 
-    def create_database_from_source(self, source: str):
+    async def create_database_from_source(self, config: Settings):
         if not self.con:
             raise ConnectionError("Database is not connected. Please connect first.")
 
         self.con.execute("DROP TABLE IF EXISTS " + self.COMPANIES_TABLE_NAME)
 
-        source_path = Path(source)
-        data_dir = Path(settings.data_dir)
+        source_path = Path(config.data_source)
+        data_dir = Path(config.data_dir)
         data_dir.mkdir(exist_ok=True)
 
-        if source.startswith(("http://", "https")):
+        if config.data_source.startswith(("http://", "https")):
             zip_path = data_dir / "BasicCompanyData.zip"
-            self._download_file(source, zip_path)
+            await self._download_file(config.data_source, zip_path)
             csv_file_path = self._unzip_first_file(zip_path, data_dir)
         elif source_path.is_file() and source_path.suffix == ".zip":
             csv_file_path = self._unzip_first_file(source_path, data_dir)
         elif source_path.is_file() and source_path.suffix == ".csv":
             csv_file_path = source_path
         else:
-            raise ValueError(f"Invalid source: '{source}'. Must be a URL or a path to a .zip or .csv file.")
+            raise ValueError(f"Invalid source: '{config.data_source}'. Must be a URL or a path to a .zip or .csv file.")
 
         if not csv_file_path:
             raise FileNotFoundError("Could not find a CSV file to load.")
 
-        print(f"Loading data from '{csv_file_path}' into table '{self.COMPANIES_TABLE_NAME}'...")
+        logger.info(f"Loading data from '{csv_file_path}' into table '{self.COMPANIES_TABLE_NAME}'...")
         safe_csv_path = csv_file_path.as_posix()
 
         columns_definition = {}
@@ -116,29 +154,30 @@ class CompaniesHouseDB:
                 delim=',', quote='"', dateformat='%d/%m/%Y', columns={columns_definition}, escape='"'
             );
         """)
-        print("Data loaded successfully.")
+        logger.info("Data loaded successfully.")
         self._create_fts_index()
 
     def _create_fts_index(self):
         """Creates a full-text search index on company name and number."""
-        print(f"Creating FTS index on table '{self.COMPANIES_TABLE_NAME}'...")
+        logger.info(f"Creating FTS index on table '{self.COMPANIES_TABLE_NAME}'...")
         self.con.execute(f"""
             PRAGMA create_fts_index('{self.COMPANIES_TABLE_NAME}', 'company_number', 'company_name', overwrite=1);
         """
         )
-        print("FTS index created successfully.")
+        logger.info("FTS index created successfully.")
 
-    def _download_file(self, url: str, dest_path: Path):
-        with requests.get(url, stream=True) as r:
-            r.raise_for_status()
-            total_size = int(r.headers.get("content-length", 0))
-            with Progress("[progress.description]{task.description}", BarColumn(), DownloadColumn(),
-                          TransferSpeedColumn(), "ETA:", TimeRemainingColumn()) as progress:
-                task = progress.add_task(f"Downloading {dest_path.name}", total=total_size)
-                with open(dest_path, "wb") as f:
-                    for chunk in r.iter_content(chunk_size=8192):
-                        f.write(chunk)
-                        progress.update(task, advance=len(chunk))
+    async def _download_file(self, url: str, dest_path: Path):
+        async with httpx.AsyncClient() as client:
+            async with client.stream("GET", url) as r:
+                r.raise_for_status()
+                total_size = int(r.headers.get("content-length", 0))
+                with Progress("[progress.description]{task.description}", BarColumn(), DownloadColumn(),
+                              TransferSpeedColumn(), "ETA:", TimeRemainingColumn()) as progress:
+                    task = progress.add_task(f"Downloading {dest_path.name}", total=total_size)
+                    with open(dest_path, "wb") as f:
+                        async for chunk in r.aiter_bytes(chunk_size=8192):
+                            f.write(chunk)
+                            progress.update(task, advance=len(chunk))
 
     def _unzip_first_file(self, zip_path: Path, extract_dir: Path) -> Path:
         with zipfile.ZipFile(zip_path, "r") as zip_ref:

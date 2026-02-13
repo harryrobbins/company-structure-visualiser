@@ -1,22 +1,11 @@
-# backend/src/api/companies_router.py
-
-"""
-API router for company-related endpoints.
-"""
-
 import logging
-from fastapi import APIRouter, Depends, HTTPException
-from openai import AsyncOpenAI, AsyncAzureOpenAI
+from fastapi import APIRouter, HTTPException
 
-from companies_duck_house.core import CompaniesHouseDB
-from api.dependencies import get_db
-from api.models import CompanyMatchRequest, CompanyMatchResponse, CompanyMatchResult
-from api.llm_client import LLMClientDep
-from api.llm_interface import recommend_best_match
+from company_structure_api.models import CompanyMatchRequest, CompanyMatchResponse, CompanyMatchResult
+from company_structure_api.company_visualizer import InjectedCompanyVisualizer
 
 logger = logging.getLogger(__name__)
 
-# --- API Router Initialization ---
 router = APIRouter(prefix="/api")
 
 
@@ -27,8 +16,7 @@ router = APIRouter(prefix="/api")
 )
 async def match_companies(
     request: CompanyMatchRequest,
-    db: CompaniesHouseDB = Depends(get_db),
-    llm_client: AsyncOpenAI | AsyncAzureOpenAI = LLMClientDep,
+    company_visualizer: InjectedCompanyVisualizer,
 ):
     """
     Accepts a list of company names and returns the closest matches
@@ -41,14 +29,13 @@ async def match_companies(
     results = {}
     try:
         for name in request.company_names:
-            matches = db.search_companies_by_name(name, limit=5)
+            matches = company_visualizer.db.search_companies_by_name(name, limit=5)
 
             if not matches:
                 results[name] = CompanyMatchResult(recommended_match=None, other_matches=[])
                 continue
 
-            recommended_company_number = await recommend_best_match(
-                client=llm_client,
+            recommended_company_number = await company_visualizer.recommend_best_match(
                 query=name,
                 matches=matches
             )
