@@ -53,7 +53,7 @@ async def initialize_database(config: Settings) -> CompaniesHouseDB:
             raise
 
     logger.info(f"Connecting to database at '{config.db_path}'...")
-    db_instance = CompaniesHouseDB(db_path=config.db_path)
+    db_instance = CompaniesHouseDB(db_path=config.db_path, read_only=True)
     db_instance.connect()
     logger.info("Database connection successful.")
     return db_instance
@@ -62,9 +62,10 @@ class CompaniesHouseDB:
     COMPANIES_TABLE_NAME = "companies"
     FTS_INDEX_NAME = "companies_fts_idx"
 
-    def __init__(self, db_path: str):
+    def __init__(self, db_path: str, read_only: bool = False):
         self.db_path = db_path
         self.con = None
+        self.read_only = read_only
 
     def __enter__(self):
         self.connect()
@@ -79,7 +80,7 @@ class CompaniesHouseDB:
             return
 
         logger.info(f"Connecting to DuckDB at: {self.db_path}")
-        self.con = duckdb.connect(database=self.db_path, read_only=False)
+        self.con = duckdb.connect(database=self.db_path, read_only=self.read_only)
         try:
             duckdb_fts_extension_path = str(Path(sysconfig.get_path('purelib')) / "duckdb_extension_fts" / "extensions" / "v1.4.3" / "fts.duckdb_extension")
             logger.info(f"Installing and loading DuckDB FTS extension from: {duckdb_fts_extension_path}")
