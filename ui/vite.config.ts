@@ -37,6 +37,15 @@ export default defineConfig(() => {
   return {
     base: appConfig.basePath,
 
+    css: {
+      preprocessorOptions: {
+        scss: {
+          quietDeps: true,
+          additionalData: `$base-path: "${appConfig.basePath}";`,
+        },
+      },
+    },
+
     plugins: [
       vue(),
       vueDevTools(),
