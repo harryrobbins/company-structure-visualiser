@@ -51,9 +51,16 @@ async function cacheGet<Result>(key: string, factory: () => Promise<Result>, max
   return await promise
 }
 
-function tryGetCacheSync<Result>(key: string): Result | null {
+function tryGetCacheSync<Result>(key: string, maxAge: number): Result | null {
   const cachedEntry = cache.get(key)
-  return cachedEntry && cachedEntry.result !== null ? (cachedEntry.result as Result) : null
+  if (!cachedEntry || cachedEntry.result === null) {
+    return null
+  }
+  // Check if cache entry has expired
+  if (Date.now() - cachedEntry.timestamp >= maxAge) {
+    return null
+  }
+  return cachedEntry.result as Result
 }
 
 export type UseApi<T, DataKey extends string = 'data'> = { [P in DataKey]: VueRef<T | null> } & {
@@ -94,7 +101,7 @@ function useApi<Path extends keyof paths, Request, Response>(
       const key = cacheKey(path, request)
 
       // check sync cache first, no need to set loading state
-      const syncResult = tryGetCacheSync<Response>(key)
+      const syncResult = tryGetCacheSync<Response>(key, maxAge)
       if (syncResult !== null) {
         data.value = syncResult
         isLoading.value = false
