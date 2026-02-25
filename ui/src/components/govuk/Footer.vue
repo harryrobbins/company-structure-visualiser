@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { appConfig } from '@/config.ts'
+import Container from '@/components/govuk/Container.vue'
 
 const { teamChatUrl } = appConfig()
 </script>
 
 <template>
   <footer class="govuk-footer">
-    <div class="govuk-width-container container!">
+    <Container>
       <svg
         focusable="false"
         role="presentation"
@@ -124,6 +125,6 @@ const { teamChatUrl } = appConfig()
           </a>
         </div>
       </div>
-    </div>
+    </Container>
   </footer>
 </template>

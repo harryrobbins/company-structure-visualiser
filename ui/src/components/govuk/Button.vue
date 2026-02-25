@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { type RouteLocationRaw, RouterLink } from 'vue-router'
-import { OhVueIcon } from 'oh-vue-icons'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const buttonElement = ref(null)

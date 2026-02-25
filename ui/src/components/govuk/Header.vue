@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
 import { appConfig } from '@/config.ts'
+import Container from '@/components/govuk/Container.vue'
 const { feedbackUrl } = appConfig()
 </script>
 
 <template>
   <header class="hmrc-internal-header">
-    <div class="govuk-width-container container! flex items-center justify-between">
+    <Container class="flex items-center justify-between">
       <div class="hmrc-internal-header__logo">
         <RouterLink :to="{ name: 'home' }" class="hmrc-internal-header__logo-link">
           <svg
@@ -51,11 +52,11 @@ const { feedbackUrl } = appConfig()
           <span class="hmrc-internal-header__logo-text"> HM Revenue &amp; Customs </span>
         </RouterLink>
       </div>
-    </div>
+    </Container>
   </header>
 
   <div class="govuk-phase-banner">
-    <div class="govuk-width-container container!">
+    <Container>
       <p class="govuk-phase-banner__content">
         <strong class="govuk-tag govuk-phase-banner__content__tag"> Beta </strong>
         <span class="govuk-phase-banner__text">
@@ -63,6 +64,6 @@ const { feedbackUrl } = appConfig()
           <a class="govuk-link" target="_blank" :href="feedbackUrl">give your feedback (opens in new tab)</a>.
         </span>
       </p>
-    </div>
+    </Container>
   </div>
 </template>
