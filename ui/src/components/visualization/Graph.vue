@@ -129,7 +129,7 @@ const DEFAULT_EDGE_PROPS: Partial<BaseEdgeProps> = {
     <GvButton @click="layoutGraph" variant="secondary" class="mb-0!">Reset layout</GvButton>
   </div>
 
-  <section class="h-200">
+  <section class="h-200" data-testid="graph-section">
     <VueFlow
       v-if="graph"
       :nodes="graph.nodes"

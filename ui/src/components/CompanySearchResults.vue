@@ -110,7 +110,7 @@ function confirmUpdate() {
 <template>
   <ModalOverlay v-if="hasAnyExpanded" @click="closeAllExpanded" />
   <h2 class="govuk-heading-l">Best matches:</h2>
-  <div class="grid lg:grid-cols-2 gap-4 mb-4">
+  <div class="grid lg:grid-cols-2 gap-4 mb-4" data-testid="match-results">
     <div v-for="[name, match] in Object.entries(model)" :key="name" class="relative">
       <Card class="mb-0!" :class="{ 'absolute z-1001 border-2 border-blue-500 shadow': isExpanded(name) }">
         <template #title>
@@ -204,7 +204,7 @@ function confirmUpdate() {
     database.
   </p>
 
-  <Button @click="confirmUpdate">Confirm and update</Button>
+  <Button @click="confirmUpdate" data-testid="confirm-and-update">Confirm and update</Button>
 </template>
 
 <style>

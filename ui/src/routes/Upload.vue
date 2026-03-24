@@ -34,6 +34,7 @@ watch(
 
   <ErrorSummary v-if="uploadError" title="File upload failed" :description="uploadError" class="mb-4" />
   <FileUpload
+    data-testid="file-upload"
     class="spreadsheet-upload"
     :disabled="uploadLoading"
     id="file-upload"
@@ -52,7 +53,7 @@ watch(
     :description="visualizationError"
     class="mb-4"
   />
-  <table v-else class="govuk-table">
+  <table v-else class="govuk-table" data-testid="visualizations-table">
     <tbody class="govuk-table__body">
       <tr v-for="visualization in visualizations" :key="visualization.id" class="govuk-table__row">
         <th class="govuk-table__header" scope="row">

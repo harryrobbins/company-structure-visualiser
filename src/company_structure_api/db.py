@@ -3,16 +3,19 @@ import sysconfig
 import zipfile
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 import duckdb
 
 from company_structure_api.models import CompanyMatch
 from company_structure_api.models import Company, PYDANTIC_TO_DUCKDB
 from company_structure_api.config import Settings
 
+if TYPE_CHECKING:
+    from company_structure_api.db import CompaniesHouseDB
+
 logger = logging.getLogger(__name__)
 
-async def initialize_database(config: Settings) -> CompaniesHouseDB:
+async def initialize_database(config: Settings) -> "CompaniesHouseDB":
     """
     Initializes the database. If the DB file doesn't exist or if a force
     recreation is requested, it builds the DB from the specified data source.

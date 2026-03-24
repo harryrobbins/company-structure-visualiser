@@ -58,6 +58,7 @@ function startMatchCompanies() {
       :model-value="allSelected"
       @click="toggleSelectAll"
       :disabled="isLoading"
+      data-testid="select-all-checkbox"
     />
 
     <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" />
@@ -78,6 +79,7 @@ function startMatchCompanies() {
       :disabled="selectedMatches.length === 0"
       :loading="isLoading"
       loading-text="Searching..."
+      data-testid="match-companies-btn"
       >Match companies</Button
     >
 

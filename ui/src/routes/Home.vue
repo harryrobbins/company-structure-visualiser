@@ -11,7 +11,7 @@ import NumberedStep from '@/components/govuk/NumberedStep.vue'
     GAILZ can be used to fuzzy match provided company data against Companies House data, and to enrich the data with
     additional information such as company status and SIC codes.
   </p>
-  <Button :is-start-button="true" :to="{ name: 'upload' }">Upload company data</Button>
+  <Button :is-start-button="true" :to="{ name: 'upload' }" data-testid="upload-company-data">Upload company data</Button>
 
   <NumberedSteps title="How it works">
     <NumberedStep color="yellow" title="Upload company data">

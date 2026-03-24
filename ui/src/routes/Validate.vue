@@ -22,10 +22,10 @@ const { updateEntities, isLoading: updateLoading, error: updateError } = useUpda
     <GroupStructureTable :entities="visualization.structure.entities" @save="updateEntities" />
 
     <p class="govuk-body">These companies are the ones I want to visualize.</p>
-    <Button :to="{ name: 'visualize', params: { uploadId } }"> Confirm and visualize </Button>
+    <Button :to="{ name: 'visualize', params: { uploadId } }" data-testid="confirm-and-visualize"> Confirm and visualize </Button>
 
     <p class="govuk-body">These companies are not the ones I want to visualize.</p>
-    <Button :to="{ name: 'match', params: { uploadId } }"> Check companies against Companies House database </Button>
+    <Button :to="{ name: 'match', params: { uploadId } }" data-testid="check-companies-house"> Check companies against Companies House database </Button>
   </div>
 </template>
 

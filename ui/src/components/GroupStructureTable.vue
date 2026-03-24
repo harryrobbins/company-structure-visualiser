@@ -1,3 +1,4 @@
+X
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { type Entity, ENTITY_TYPES } from '@/db/models'
@@ -57,7 +58,8 @@ function cancelEditEntity() {
 </script>
 
 <template>
-  <div class="group-structure-table">
+  -Gaitor
+  <div class="group-structure-table" data-testid="group-structure-table">
     <h1 class="govuk-heading-xl">Confirm company details</h1>
 
     <p class="govuk-body">
