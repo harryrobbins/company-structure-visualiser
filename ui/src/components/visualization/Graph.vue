@@ -40,6 +40,61 @@ const colorOptions = [
   { value: '#f97316', label: 'Orange' },
 ] as const
 
+// --- Node search / highlight ---
+const searchQuery = ref('')
+const highlightColor = ref('#ef4444')
+const highlightParents = ref(false)
+
+const matchedNodeIds = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q || !graph.value) return new Set<string>()
+  return new Set(
+    graph.value.nodes
+      .filter((n) => {
+        const label = n.data?.label?.toLowerCase() ?? ''
+        const name = n.data?.entity.name?.toLowerCase() ?? ''
+        const tin = n.data?.entity.tin?.toLowerCase() ?? ''
+        return label.includes(q) || name.includes(q) || tin.includes(q)
+      })
+      .map((n) => n.id),
+  )
+})
+
+const highlightedNodeIds = computed(() => {
+  const matched = matchedNodeIds.value
+  if (!highlightParents.value || !graph.value || matched.size === 0) return matched
+  const all = new Set(matched)
+  const queue = [...matched]
+  while (queue.length) {
+    const current = queue.shift()!
+    for (const edge of graph.value.edges) {
+      if (edge.target === current && !all.has(edge.source)) {
+        all.add(edge.source)
+        queue.push(edge.source)
+      }
+    }
+  }
+  return all
+})
+
+const highlightedEdgeIds = computed(() => {
+  if (!graph.value || highlightedNodeIds.value.size === 0) return new Set<string>()
+  return new Set(
+    graph.value.edges
+      .filter((e) => highlightedNodeIds.value.has(e.source) && highlightedNodeIds.value.has(e.target))
+      .map((e) => e.id),
+  )
+})
+
+provide(
+  'highlightedNodeIds',
+  computed(() => highlightedNodeIds.value),
+)
+provide(
+  'highlightColor',
+  computed(() => highlightColor.value),
+)
+
 onConnect(({ source, target }: { source: string; target: string }) => {
   // Ignore if duplicate supplemental connection
   if (graph.value?.edges.some((e) => e.source === source && e.target === target && e.type === 'supplemental') ?? false)
@@ -251,6 +306,15 @@ const DEFAULT_EDGE_PROPS: Partial<BaseEdgeProps> = {
   labelStyle: { fill: 'var(--color-black)', fontSize: '16px' },
   interactionWidth: 0,
 }
+
+function edgeHighlightProps(edgeId: string): Record<string, unknown> {
+  if (!highlightedEdgeIds.value.has(edgeId)) return {}
+  return {
+    style: { stroke: highlightColor.value, strokeWidth: 4 },
+    labelStyle: { fill: highlightColor.value, fontSize: '16px' },
+    labelBgStyle: { fill: 'var(--color-white)', stroke: highlightColor.value, strokeWidth: 3 },
+  }
+}
 </script>
 
 <template>
@@ -399,6 +463,28 @@ const DEFAULT_EDGE_PROPS: Partial<BaseEdgeProps> = {
       <template #default>
         <Panel position="top-left" class="w-full m-0! z-1000 border-b-2 border-blue-500">
           <Controls>
+            <div class="flex items-center gap-2">
+              <input
+                id="node-search"
+                type="text"
+                v-model="searchQuery"
+                placeholder="Search nodes…"
+                class="govuk-input mb-0! h-8 w-48 text-sm bg-white text-black"
+              />
+              <select id="highlight-color" class="govuk-select mb-0! h-8 text-sm min-w-25!" v-model="highlightColor">
+                <option v-for="option in colorOptions" :key="option.value" :value="option.value">
+                  {{ option.label }}
+                </option>
+              </select>
+              <div class="govuk-checkboxes govuk-checkboxes--small mb-0!" @pointerdown.stop>
+                <GvCheckbox
+                  v-model="highlightParents"
+                  id="highlight-parents"
+                  label="Parents"
+                  label-class="whitespace-nowrap"
+                />
+              </div>
+            </div>
             <GvButton v-if="supplementalEdges.length > 0" variant="warning" class="mb-0!" @click="removeAllConnections">
               Remove all custom connections ({{ supplementalEdges.length }})
             </GvButton>
@@ -407,15 +493,15 @@ const DEFAULT_EDGE_PROPS: Partial<BaseEdgeProps> = {
       </template>
 
       <template #edge-step="props">
-        <StepEdge v-bind="{ ...props, ...DEFAULT_EDGE_PROPS }" />
+        <StepEdge v-bind="{ ...props, ...DEFAULT_EDGE_PROPS, ...edgeHighlightProps(props.id) }" />
       </template>
 
       <template #edge-bezier="props">
-        <BezierEdge v-bind="{ ...props, ...DEFAULT_EDGE_PROPS }" />
+        <BezierEdge v-bind="{ ...props, ...DEFAULT_EDGE_PROPS, ...edgeHighlightProps(props.id) }" />
       </template>
 
       <template #edge-straight="props">
-        <StraightEdge v-bind="{ ...props, ...DEFAULT_EDGE_PROPS }" />
+        <StraightEdge v-bind="{ ...props, ...DEFAULT_EDGE_PROPS, ...edgeHighlightProps(props.id) }" />
       </template>
 
       <template #edge-supplemental="props">

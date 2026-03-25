@@ -16,6 +16,28 @@ const showCountryFlags = inject<{ value: boolean }>('showCountryFlags', { value:
 const extraNodePadding = inject<Ref<number>>('extraNodePadding', ref(0))
 const showUnconnectedHandles = inject<Ref<boolean>>('showUnconnectedHandles', ref(true))
 
+const highlightedNodeIds = inject<{ value: Set<string> }>('highlightedNodeIds', { value: new Set() })
+const _highlightColor = inject<{ value: string }>('highlightColor', { value: '#ef4444' })
+
+const isHighlighted = computed(() => highlightedNodeIds.value?.has(props.id) ?? false)
+const highlightColorValue = computed(() => _highlightColor.value ?? '#ef4444')
+
+const usesSvgBorder = computed(() =>
+  nodeClass.some((clz) => clz.endsWith('diamond') || clz.endsWith('triangle')),
+)
+
+const highlightStyle = computed(() => {
+  if (!isHighlighted.value) return {}
+  if (usesSvgBorder.value) {
+    return { color: highlightColorValue.value }
+  }
+  return {
+    borderColor: highlightColorValue.value,
+    borderWidth: '4px',
+    color: highlightColorValue.value,
+  }
+})
+
 const { getConnectedEdges } = useVueFlow()
 
 let source = false
@@ -71,24 +93,43 @@ switch (props.data.entity.type) {
 </script>
 
 <template>
-  <div :class="nodeClass" :style="extraNodePadding ? { padding: `calc(1rem + ${extraNodePadding}px)` } : {}">
+  <div
+    :class="nodeClass"
+    :style="{ ...(extraNodePadding ? { padding: `calc(1rem + ${extraNodePadding}px)` } : {}), ...highlightStyle }"
+  >
     <div
       v-if="nodeClass.some((clz) => clz.endsWith('triangle'))"
       class="triangle-container"
-      :style="extraNodePadding ? { minWidth: `${180 + extraNodePadding * 2}px`, minHeight: `${100 + extraNodePadding * 2}px` } : {}"
+      :style="
+        extraNodePadding
+          ? { minWidth: `${180 + extraNodePadding * 2}px`, minHeight: `${100 + extraNodePadding * 2}px` }
+          : {}
+      "
     >
       <svg viewBox="0 0 100 87" preserveAspectRatio="none">
-        <polygon points="50,0 0,86.5 100,86.5" fill="transparent" stroke="#000" stroke-width="1" />
+        <polygon
+          points="50,0 0,86.5 100,86.5"
+          fill="transparent"
+          :stroke="isHighlighted ? highlightColorValue : '#000'"
+          :stroke-width="isHighlighted ? 2 : 1"
+        />
       </svg>
       <p class="govuk-body">{{ props.data.label }}</p>
     </div>
     <div
       v-else-if="nodeClass.some((clz) => clz.endsWith('diamond'))"
       class="diamond-container"
-      :style="extraNodePadding ? { width: `${150 + extraNodePadding * 2}px`, height: `${150 + extraNodePadding * 2}px` } : {}"
+      :style="
+        extraNodePadding ? { width: `${150 + extraNodePadding * 2}px`, height: `${150 + extraNodePadding * 2}px` } : {}
+      "
     >
       <svg viewBox="0 0 100 100" preserveAspectRatio="none">
-        <polygon points="50,0 100,50 50,100 0,50" fill="transparent" stroke="#000" stroke-width="1" />
+        <polygon
+          points="50,0 100,50 50,100 0,50"
+          fill="transparent"
+          :stroke="isHighlighted ? highlightColorValue : '#000'"
+          :stroke-width="isHighlighted ? 2 : 1"
+        />
       </svg>
       <p class="govuk-body">{{ props.data.label }}</p>
     </div>
