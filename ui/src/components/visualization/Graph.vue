@@ -273,10 +273,48 @@ const props = defineProps<{
 }>()
 
 const graph = ref<EntityGraph>()
-watch(props, ({ structure, matches = {} }) => (graph.value = entityGraph(structure, matches)), {
-  immediate: true,
-  deep: true,
-})
+let lastEntitiesKey = ''
+let lastRelationshipsKey = ''
+let isInitialRender = true
+
+watch(
+  props,
+  ({ structure, matches = {} }) => {
+    // Build keys to detect if entities or relationships actually changed
+    const entitiesKey = JSON.stringify(structure.entities)
+    const relationshipsKey = JSON.stringify(structure.relationships)
+    const structureChanged = entitiesKey !== lastEntitiesKey || relationshipsKey !== lastRelationshipsKey
+    lastEntitiesKey = entitiesKey
+    lastRelationshipsKey = relationshipsKey
+
+    if (structureChanged || !graph.value) {
+      // Full regeneration + layout when entities or relationships change
+      graph.value = entityGraph(structure, matches)
+      // Skip layout on initial render — @nodes-initialized handles it
+      if (!isInitialRender) {
+        layoutGraph()
+      }
+      isInitialRender = false
+    } else {
+      // Only supplemental connections changed — sync them without regenerating
+      const currentNonSupplemental = graph.value.edges.filter((e) => e.type !== 'supplemental')
+      const newSupplemental = (structure.supplementalConnections ?? []).map((connection) => ({
+        id: `supplemental:${connection.parent}->${connection.child}`,
+        source: connection.parent,
+        target: connection.child,
+        label: connection.label,
+        data: { connection },
+        type: 'supplemental' as const,
+        style: { stroke: connection.color },
+      }))
+      graph.value.edges = [...currentNonSupplemental, ...newSupplemental]
+    }
+  },
+  {
+    immediate: true,
+    deep: true,
+  },
+)
 
 async function layoutGraph() {
   if (graph.value) {
@@ -443,8 +481,6 @@ function edgeHighlightProps(edgeId: string): Record<string, unknown> {
         </GvSelect>
       </div>
     </div>
-
-    <GvButton @click="layoutGraph" variant="secondary" class="mb-0!">Reset layout</GvButton>
   </div>
 
   <!-- Delete supplemental edge confirmation modal -->
@@ -507,6 +543,7 @@ function edgeHighlightProps(edgeId: string): Record<string, unknown> {
 
   <section class="h-200 flex flex-col" data-testid="graph-section">
     <Controls :zoom-in="zoomIn" :zoom-out="zoomOut" :fit-view="fitView" :vue-flow-el="vueFlowRef">
+      <GvButton @click="layoutGraph" variant="warning" class="mb-0!">Reset layout</GvButton>
       <GvButton v-if="supplementalEdges.length > 0" variant="warning" class="mb-0!" @click="removeAllConnections">
         Clear connections
       </GvButton>

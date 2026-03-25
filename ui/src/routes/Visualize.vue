@@ -14,9 +14,9 @@ const { removeSupplementalConnection, removeAllSupplementalConnections } = useRe
 </script>
 
 <template>
-  <LoadingSpinner v-if="isLoading" />
-  <ErrorSummary v-else-if="error" title="Error loading visualization" :description="error" />
-  <div v-else-if="visualization">
+  <LoadingSpinner v-if="isLoading && !visualization" />
+  <ErrorSummary v-if="error && !visualization" title="Error loading visualization" :description="error" />
+  <div v-if="visualization">
     <h1 class="govuk-heading-xl">Visualization</h1>
     <p class="govuk-body">View company structure and relationships.</p>
     <Graph
