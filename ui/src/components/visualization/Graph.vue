@@ -17,6 +17,7 @@ import ShowHideLink from '@/components/govuk/ShowHideLink.vue'
 import ColorSelect from '@/components/visualization/ColorSelect.vue'
 import HighlightRulesModal from '@/components/visualization/HighlightRulesModal.vue'
 import type { HighlightRule } from '@/components/visualization/HighlightRulesModal.vue'
+import SearchModal from '@/components/visualization/SearchModal.vue'
 
 const { layout } = useLayout()
 const { fitView, onConnect, nodesConnectable } = useVueFlow()
@@ -519,25 +520,12 @@ function edgeHighlightProps(edgeId: string): Record<string, unknown> {
             <GvButton v-if="supplementalEdges.length > 0" variant="warning" class="mb-0!" @click="removeAllConnections">
               Clear connections
             </GvButton>
+            <SearchModal
+              v-model:search-query="searchQuery"
+              v-model:highlight-color="highlightColor"
+              v-model:search-toggles="searchToggles"
+            />
             <HighlightRulesModal v-model="highlightRules" :available-jurisdictions="availableJurisdictions" />
-            <div class="flex items-center gap-2">
-              <input
-                id="node-search"
-                type="text"
-                v-model="searchQuery"
-                placeholder="Search nodes…"
-                class="govuk-input mb-0! h-8 w-48 text-sm bg-white text-black"
-              />
-              <ColorSelect v-model="highlightColor" id="highlight-color" class="mb-0! h-8 text-sm" />
-              <GvCheckboxes v-model="searchToggles" form-group-class="mb-0!" size="small" @pointerdown.stop>
-                <GvCheckbox
-                  value="highlightParents"
-                  id="highlight-parents"
-                  label="Parents"
-                  label-class="whitespace-nowrap"
-                />
-              </GvCheckboxes>
-            </div>
           </Controls>
         </Panel>
       </template>
