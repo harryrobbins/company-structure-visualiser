@@ -97,11 +97,16 @@ const edgeType = ref<EdgeType>('step')
 const extraHSpacing = ref<SpacingValue>(0)
 const extraVSpacing = ref<SpacingValue>(0)
 const showCustomControls = ref(false)
-const toggleControls = ref<string[]>(['showEdgeLabels', 'hide100PercentLabels', 'showCountryFlags'])
+const toggleControls = ref<string[]>(['showEdgeLabels', 'hide100PercentLabels', 'showCountryFlags', 'showUnconnectedHandles'])
 
 provide(
   'showCountryFlags',
   computed(() => toggleControls.value.includes('showCountryFlags')),
+)
+
+provide(
+  'showUnconnectedHandles',
+  computed(() => toggleControls.value.includes('showUnconnectedHandles')),
 )
 
 const extraNodePadding = ref<SpacingValue>(0)
@@ -238,6 +243,12 @@ const DEFAULT_EDGE_PROPS: Partial<BaseEdgeProps> = {
         value="showCountryFlags"
         id="show-country-flags"
         label="Show country flags"
+        label-class="whitespace-nowrap"
+      />
+      <GvCheckbox
+        value="showUnconnectedHandles"
+        id="show-unconnected-handles"
+        label="Show unconnected handles"
         label-class="whitespace-nowrap"
       />
     </GvCheckboxes>

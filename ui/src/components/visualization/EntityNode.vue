@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Handle, Position } from '@vue-flow/core'
+import { Handle, Position, useVueFlow } from '@vue-flow/core'
 import CountryFlag from '@/components/visualization/CountryFlag.vue'
 import type { NodeData } from '@/db/models.ts'
 import { inject, computed, ref, type Ref } from 'vue'
@@ -14,6 +14,16 @@ const props = defineProps<Props>()
 
 const showCountryFlags = inject<{ value: boolean }>('showCountryFlags', { value: true })
 const extraNodePadding = inject<Ref<number>>('extraNodePadding', ref(0))
+const showUnconnectedHandles = inject<Ref<boolean>>('showUnconnectedHandles', ref(true))
+
+const { getConnectedEdges } = useVueFlow()
+
+let source = false
+let target = false
+for (const edge of getConnectedEdges(props.id)) {
+  if (edge.source === props.id) source = true
+  if (edge.target === props.id) target = true
+}
 
 function toIsoCode(countryName: string | undefined): string {
   if (!countryName) return ''
@@ -98,8 +108,8 @@ switch (props.data.entity.type) {
       <span v-else-if="isoCodeDisplay" class="iso-code">{{ isoCodeDisplay }}</span>
     </div>
   </div>
-  <Handle type="source" :position="Position.Bottom" />
-  <Handle type="target" :position="Position.Top" />
+  <Handle type="source" :position="Position.Bottom" v-if="source || showUnconnectedHandles" />
+  <Handle type="target" :position="Position.Top" v-if="target || showUnconnectedHandles" />
 </template>
 
 <style scoped>
