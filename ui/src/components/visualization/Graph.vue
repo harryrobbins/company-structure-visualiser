@@ -198,11 +198,6 @@ const DEFAULT_EDGE_PROPS: Partial<BaseEdgeProps> = {
     </div>
 
     <GvButton @click="layoutGraph" variant="secondary" class="mb-0!">Reset layout</GvButton>
-    <GvButton
-      @click="exportGroupStructureToXlsx(props.structure).then((buf) => downloadXlsx(buf, 'group-structure.xlsx'))"
-      variant="secondary"
-      class="mb-0!"
-    >Export xlsx</GvButton>
   </div>
 
   <section class="h-200" data-testid="graph-section">
