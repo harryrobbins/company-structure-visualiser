@@ -20,7 +20,11 @@ const { fitView, onConnect, nodesConnectable } = useVueFlow()
 
 nodesConnectable.value = true
 
-const emit = defineEmits<{ 'add-connection': [connection: SupplementalConnection] }>()
+const emit = defineEmits<{
+  'add-connection': [connection: SupplementalConnection]
+  'remove-connection': [connection: SupplementalConnection]
+  'remove-all-connections': []
+}>()
 
 const pendingConnection = ref<{ source: string; target: string } | null>(null)
 const pendingLabel = ref('')
@@ -78,6 +82,36 @@ function cancelConnection() {
   pendingConnection.value = null
 }
 
+// --- Delete supplemental edge state ---
+const edgeToDelete = ref<{ source: string; target: string; connection: SupplementalConnection } | null>(null)
+
+function onEdgeClick({ edge }: { edge: any }) {
+  if (edge.type !== 'supplemental' || !edge.data?.connection) return
+  edgeToDelete.value = { source: edge.source, target: edge.target, connection: edge.data.connection }
+}
+
+function confirmDeleteEdge() {
+  if (!edgeToDelete.value || !graph.value) return
+  const { source, target, connection } = edgeToDelete.value
+  graph.value.edges = graph.value.edges.filter(
+    (e) => !(e.source === source && e.target === target && e.type === 'supplemental'),
+  )
+  emit('remove-connection', connection)
+  edgeToDelete.value = null
+}
+
+function cancelDeleteEdge() {
+  edgeToDelete.value = null
+}
+
+const supplementalEdges = computed(() => graph.value?.edges.filter((e) => e.type === 'supplemental') ?? [])
+
+function removeAllConnections() {
+  if (!graph.value) return
+  graph.value.edges = graph.value.edges.filter((e) => e.type !== 'supplemental')
+  emit('remove-all-connections')
+}
+
 const edgeTypeOptions = [
   { value: 'step', label: 'Step' },
   { value: 'straight', label: 'Straight' },
@@ -97,7 +131,12 @@ const edgeType = ref<EdgeType>('step')
 const extraHSpacing = ref<SpacingValue>(0)
 const extraVSpacing = ref<SpacingValue>(0)
 const showCustomControls = ref(false)
-const toggleControls = ref<string[]>(['showEdgeLabels', 'hide100PercentLabels', 'showCountryFlags', 'showUnconnectedHandles'])
+const toggleControls = ref<string[]>([
+  'showEdgeLabels',
+  'hide100PercentLabels',
+  'showCountryFlags',
+  'showUnconnectedHandles',
+])
 
 provide(
   'showCountryFlags',
@@ -285,6 +324,30 @@ const DEFAULT_EDGE_PROPS: Partial<BaseEdgeProps> = {
     <GvButton @click="layoutGraph" variant="secondary" class="mb-0!">Reset layout</GvButton>
   </div>
 
+  <!-- Delete supplemental edge confirmation modal -->
+  <div
+    v-if="edgeToDelete"
+    class="fixed inset-0 z-2000 flex items-center justify-center bg-black/40"
+    @click.self="cancelDeleteEdge"
+  >
+    <div class="bg-white p-6 max-w-sm w-full mx-4 border-2 border-black">
+      <h2 class="govuk-heading-m">Remove connection</h2>
+      <p class="govuk-body">
+        Are you sure you want to remove the custom connection
+        <strong v-if="edgeToDelete.connection.label">"{{ edgeToDelete.connection.label }}"</strong>
+        between
+        <strong>{{ getNodeLabel(edgeToDelete.source) }}</strong>
+        and
+        <strong>{{ getNodeLabel(edgeToDelete.target) }}</strong
+        >?
+      </p>
+      <div class="flex gap-2">
+        <GvButton class="bg-red-600! border-red-600!" @click="confirmDeleteEdge">Remove</GvButton>
+        <GvButton variant="secondary" @click="cancelDeleteEdge">Cancel</GvButton>
+      </div>
+    </div>
+  </div>
+
   <div
     v-if="pendingConnection"
     class="fixed inset-0 z-2000 flex items-center justify-center bg-black/40"
@@ -330,11 +393,16 @@ const DEFAULT_EDGE_PROPS: Partial<BaseEdgeProps> = {
       :edges="graph.edges"
       fit-view-on-init
       @nodes-initialized="layoutGraph"
+      @edge-click="onEdgeClick"
       class="border-2 border-blue-500"
     >
       <template #default>
         <Panel position="top-left" class="w-full m-0! z-1000 border-b-2 border-blue-500">
-          <Controls />
+          <Controls>
+            <GvButton v-if="supplementalEdges.length > 0" variant="warning" class="mb-0!" @click="removeAllConnections">
+              Remove all custom connections ({{ supplementalEdges.length }})
+            </GvButton>
+          </Controls>
         </Panel>
       </template>
 

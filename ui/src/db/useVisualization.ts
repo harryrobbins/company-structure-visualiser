@@ -147,6 +147,61 @@ export function useAddSupplementalConnection(idRef: MaybeRefOrGetter<number>) {
   return { addSupplementalConnection, isLoading, error }
 }
 
+export function useRemoveSupplementalConnection(idRef: MaybeRefOrGetter<number>) {
+  const isLoading = ref(false)
+  const error = ref<string | null>(null)
+
+  async function removeSupplementalConnection(connection: SupplementalConnection) {
+    const id = toValue(idRef)
+    isLoading.value = true
+    error.value = null
+    try {
+      const visualization = await db.visualizations.get(id)
+      if (!visualization) {
+        error.value = 'Visualization not found'
+        return
+      }
+      await db.visualizations.update(id, {
+        structure: {
+          ...visualization.structure,
+          supplementalConnections: (visualization.structure.supplementalConnections ?? []).filter(
+            (c) => !(c.parent === connection.parent && c.child === connection.child),
+          ),
+        },
+      })
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : String(e)
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function removeAllSupplementalConnections() {
+    const id = toValue(idRef)
+    isLoading.value = true
+    error.value = null
+    try {
+      const visualization = await db.visualizations.get(id)
+      if (!visualization) {
+        error.value = 'Visualization not found'
+        return
+      }
+      await db.visualizations.update(id, {
+        structure: {
+          ...visualization.structure,
+          supplementalConnections: [],
+        },
+      })
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : String(e)
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  return { removeSupplementalConnection, removeAllSupplementalConnections, isLoading, error }
+}
+
 export function useApplyCompanyMatches(idRef: MaybeRefOrGetter<number>) {
   const router = useRouter()
   const isLoading = ref(false)

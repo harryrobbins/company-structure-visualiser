@@ -18,7 +18,10 @@ function doScreenshot() {
 </script>
 
 <template>
-  <div class="w-full flex bg-blue-50 p-2 text-blue-500 justify-end">
+  <div class="w-full flex bg-blue-50 p-2 text-blue-500 justify-between items-center">
+    <div class="flex gap-2 items-center">
+      <slot />
+    </div>
     <div class="flex gap-2 items-center">
       <button class="cursor-pointer" @click="zoomIn()">
         <OhVueIcon name="md-zoomin" scale="2" />
