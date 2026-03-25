@@ -22,9 +22,11 @@ const _highlightColor = inject<{ value: string }>('highlightColor', { value: '#e
 const isHighlighted = computed(() => highlightedNodeIds.value?.has(props.id) ?? false)
 const highlightColorValue = computed(() => _highlightColor.value ?? '#ef4444')
 
-const usesSvgBorder = computed(() =>
-  nodeClass.some((clz) => clz.endsWith('diamond') || clz.endsWith('triangle')),
-)
+const usesSvgBorder = computed(() => {
+  const hasSvgShape = nodeClass.some((clz) => clz.endsWith('diamond') || clz.endsWith('triangle'))
+  const hasCssBorder = nodeClass.some((clz) => clz.endsWith('rectangle') || clz.endsWith('oval'))
+  return hasSvgShape && !hasCssBorder
+})
 
 const highlightStyle = computed(() => {
   if (!isHighlighted.value) return {}
@@ -35,6 +37,8 @@ const highlightStyle = computed(() => {
     borderColor: highlightColorValue.value,
     borderWidth: '4px',
     color: highlightColorValue.value,
+    '--highlight-border-color': highlightColorValue.value,
+    '--highlight-border-width': '4px',
   }
 })
 
@@ -177,7 +181,7 @@ switch (props.data.entity.type) {
   transform: translate(-50%, -50%);
   width: 100%;
   height: 100%;
-  border: 2px solid #000;
+  border: var(--highlight-border-width, 2px) solid var(--highlight-border-color, #000);
   border-radius: 50%;
   background-color: transparent;
 }
