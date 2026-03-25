@@ -6,6 +6,7 @@ import ErrorSummary from '@/components/govuk/ErrorSummary.vue'
 import GroupStructureTable from '@/components/GroupStructureTable.vue'
 import { computed } from 'vue'
 import Button from '@/components/govuk/Button.vue'
+import { exportGroupStructureToXlsx, downloadXlsx } from '@/composables/export.ts'
 
 const route = useRoute()
 const uploadId = computed(() => parseInt(route.params.uploadId as string))
@@ -26,6 +27,12 @@ const { updateEntities, isLoading: updateLoading, error: updateError } = useUpda
 
     <p class="govuk-body">These companies are not the ones I want to visualize.</p>
     <Button :to="{ name: 'match', params: { uploadId } }" data-testid="check-companies-house"> Check companies against Companies House database </Button>
+
+    <p class="govuk-body">I want to export this group structure.</p>
+    <Button
+      variant="secondary"
+      @click="exportGroupStructureToXlsx(visualization!.structure).then((buf) => downloadXlsx(buf, visualization!.filename))"
+    >Export as xlsx</Button>
   </div>
 </template>
 

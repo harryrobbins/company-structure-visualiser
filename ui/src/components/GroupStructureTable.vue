@@ -58,7 +58,6 @@ function cancelEditEntity() {
 </script>
 
 <template>
-  -Gaitor
   <div class="group-structure-table" data-testid="group-structure-table">
     <h1 class="govuk-heading-xl">Confirm company details</h1>
 

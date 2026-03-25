@@ -14,6 +14,7 @@ import GvButton from '@/components/govuk/Button.vue'
 import GvCheckboxes from '@/components/govuk/Checkboxes.vue'
 import GvCheckbox from '@/components/govuk/Checkbox.vue'
 import ShowHideLink from '@/components/govuk/ShowHideLink.vue'
+import { exportGroupStructureToXlsx, downloadXlsx } from '@/composables/export.ts'
 
 const { layout } = useLayout()
 const { fitView } = useVueFlow()
@@ -197,6 +198,11 @@ const DEFAULT_EDGE_PROPS: Partial<BaseEdgeProps> = {
     </div>
 
     <GvButton @click="layoutGraph" variant="secondary" class="mb-0!">Reset layout</GvButton>
+    <GvButton
+      @click="exportGroupStructureToXlsx(props.structure).then((buf) => downloadXlsx(buf, 'group-structure.xlsx'))"
+      variant="secondary"
+      class="mb-0!"
+    >Export xlsx</GvButton>
   </div>
 
   <section class="h-200" data-testid="graph-section">
