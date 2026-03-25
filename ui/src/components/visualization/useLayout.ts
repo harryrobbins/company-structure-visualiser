@@ -6,6 +6,12 @@ import type { EntityGraph } from '@/db/models.ts'
 
 export type LayoutDirection = 'LR' | 'TB'
 
+export interface LayoutOptions {
+  direction?: LayoutDirection
+  extraHPadding?: number
+  extraVPadding?: number
+}
+
 /**
  * Composable to run the layout algorithm on the graph.
  * It uses the `dagre` library to calculate the layout of the nodes and edges.
@@ -13,7 +19,10 @@ export type LayoutDirection = 'LR' | 'TB'
 export function useLayout() {
   const { findNode } = useVueFlow()
 
-  function layout({ nodes, edges }: EntityGraph, direction: LayoutDirection = 'TB') {
+  function layout(
+    { nodes, edges }: EntityGraph,
+    { direction = 'TB', extraHPadding = 0, extraVPadding = 0 }: LayoutOptions = {},
+  ) {
     // we create a new graph instance, in case some nodes/edges were removed, otherwise dagre would act as if they were still there
     const dagreGraph = new graphlib.Graph()
 
@@ -26,8 +35,8 @@ export function useLayout() {
       const graphNode = findNode(node.id)
       if (graphNode) {
         dagreGraph.setNode(node.id, {
-          width: graphNode.dimensions.width,
-          height: graphNode.dimensions.height,
+          width: graphNode.dimensions.width + extraHPadding,
+          height: graphNode.dimensions.height + extraVPadding,
         })
       }
     }

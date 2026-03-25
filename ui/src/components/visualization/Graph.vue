@@ -24,12 +24,25 @@ const edgeTypeOptions = [
   { value: 'bezier', label: 'Curved' },
 ] as const
 
+const spacingOptions = [
+  { value: 0, label: 'None' },
+  { value: 15, label: 'Comfortable' },
+  { value: 30, label: 'Spacious' },
+  { value: 50, label: 'Generous' },
+] as const
+
 type EdgeType = (typeof edgeTypeOptions)[number]['value']
+type SpacingValue = (typeof spacingOptions)[number]['value']
 const edgeType = ref<EdgeType>('step')
+const extraHSpacing = ref<SpacingValue>(0)
+const extraVSpacing = ref<SpacingValue>(0)
 const showCustomControls = ref(false)
 const toggleControls = ref<string[]>(['showEdgeLabels', 'hide100PercentLabels', 'showCountryFlags'])
 
-provide('showCountryFlags', computed(() => toggleControls.value.includes('showCountryFlags')))
+provide(
+  'showCountryFlags',
+  computed(() => toggleControls.value.includes('showCountryFlags')),
+)
 
 const props = defineProps<{
   structure: GroupStructure
@@ -44,10 +57,16 @@ watch(props, ({ structure, matches = {} }) => (graph.value = entityGraph(structu
 
 async function layoutGraph() {
   if (graph.value) {
-    graph.value.nodes = layout(graph.value)
+    graph.value.nodes = layout(graph.value, {
+      direction: 'TB',
+      extraHPadding: extraHSpacing.value,
+      extraVPadding: extraVSpacing.value,
+    })
   }
   await nextTick(fitView)
 }
+
+watch([extraHSpacing, extraVSpacing], layoutGraph)
 
 // Watch for edge type changes and regenerate the graph
 watch(edgeType, () => {
@@ -114,14 +133,11 @@ const DEFAULT_EDGE_PROPS: Partial<BaseEdgeProps> = {
     class="my-6 flex flex-col md:flex-row flex-wrap md:items-center gap-4 border-l-4 border-gray-500 pl-4"
     v-if="showCustomControls"
   >
-    <div class="flex flex-row items-center gap-2">
-      <label for="edge-type-select" class="govuk-label whitespace-nowrap mb-0!">Edge type:</label>
-      <GvSelect v-model="edgeType" id="edge-type-select" form-group-class="mb-0!">
-        <option v-for="option in edgeTypeOptions" :key="option.value" :value="option.value">
-          {{ option.label }}
-        </option>
-      </GvSelect>
-    </div>
+    <GvSelect v-model="edgeType" id="edge-type-select" form-group-class="mb-0!" label="Edge type">
+      <option v-for="option in edgeTypeOptions" :key="option.value" :value="option.value">
+        {{ option.label }}
+      </option>
+    </GvSelect>
 
     <GvCheckboxes v-model="toggleControls" form-group-class="mb-0!" size="small">
       <GvCheckbox
@@ -143,6 +159,26 @@ const DEFAULT_EDGE_PROPS: Partial<BaseEdgeProps> = {
         label-class="whitespace-nowrap"
       />
     </GvCheckboxes>
+
+    <div class="flex flex-col gap-1">
+      <span class="govuk-label font-bold! mb-0!">Extra spacing</span>
+      <div class="flex flex-row items-center gap-2">
+        <label for="h-spacing-select" class="govuk-label whitespace-nowrap mb-0!">Horizontal</label>
+        <GvSelect v-model="extraHSpacing" id="h-spacing-select" form-group-class="mb-0!">
+          <option v-for="option in spacingOptions" :key="option.value" :value="option.value">
+            {{ option.label }}
+          </option>
+        </GvSelect>
+      </div>
+      <div class="flex flex-row items-center gap-2">
+        <label for="v-spacing-select" class="govuk-label whitespace-nowrap mb-0! grow">Vertical</label>
+        <GvSelect v-model="extraVSpacing" id="v-spacing-select" form-group-class="mb-0!">
+          <option v-for="option in spacingOptions" :key="option.value" :value="option.value">
+            {{ option.label }}
+          </option>
+        </GvSelect>
+      </div>
+    </div>
 
     <GvButton @click="layoutGraph" variant="secondary" class="mb-0!">Reset layout</GvButton>
   </div>
