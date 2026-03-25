@@ -2,7 +2,7 @@ import { parseCompanyOwnershipWorkbook } from '@/composables/parse.ts'
 import { db, type UseDb, useDb } from '@/db/useDb.ts'
 import { type MaybeRefOrGetter, ref, toValue } from 'vue'
 import { useRouter } from 'vue-router'
-import type { Entity, Visualization } from '@/db/models.ts'
+import type { Entity, EntityRelationship, SupplementalConnection, Visualization } from '@/db/models.ts'
 import type { CompanyMatches } from '@/api/models.ts'
 
 export function useStartVisualization() {
@@ -115,6 +115,36 @@ export function useUpdateEntity(idRef: MaybeRefOrGetter<number>) {
   }
 
   return { updateEntities: updateEntity, isLoading, error }
+}
+
+export function useAddSupplementalConnection(idRef: MaybeRefOrGetter<number>) {
+  const isLoading = ref(false)
+  const error = ref<string | null>(null)
+
+  async function addSupplementalConnection(connection: SupplementalConnection) {
+    const id = toValue(idRef)
+    isLoading.value = true
+    error.value = null
+    try {
+      const visualization = await db.visualizations.get(id)
+      if (!visualization) {
+        error.value = 'Visualization not found'
+        return
+      }
+      await db.visualizations.update(id, {
+        structure: {
+          ...visualization.structure,
+          supplementalConnections: [...(visualization.structure.supplementalConnections ?? []), connection],
+        },
+      })
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : String(e)
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  return { addSupplementalConnection, isLoading, error }
 }
 
 export function useApplyCompanyMatches(idRef: MaybeRefOrGetter<number>) {

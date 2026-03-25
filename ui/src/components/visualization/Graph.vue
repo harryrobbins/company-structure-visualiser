@@ -5,7 +5,7 @@ import { VueFlow, Panel } from '@vue-flow/core'
 import Controls from '@/components/visualization/Controls.vue'
 import { useLayout } from '@/components/visualization/useLayout.ts'
 import EntityNode from '@/components/visualization/EntityNode.vue'
-import type { EntityGraph, GroupStructure } from '@/db/models.ts'
+import type { EntityGraph, GroupStructure, SupplementalConnection } from '@/db/models.ts'
 
 import type { CompanyMatches } from '@/api/models.ts'
 
@@ -14,10 +14,69 @@ import GvButton from '@/components/govuk/Button.vue'
 import GvCheckboxes from '@/components/govuk/Checkboxes.vue'
 import GvCheckbox from '@/components/govuk/Checkbox.vue'
 import ShowHideLink from '@/components/govuk/ShowHideLink.vue'
-import { exportGroupStructureToXlsx, downloadXlsx } from '@/composables/export.ts'
 
 const { layout } = useLayout()
-const { fitView } = useVueFlow()
+const { fitView, onConnect, nodesConnectable } = useVueFlow()
+
+nodesConnectable.value = true
+
+const emit = defineEmits<{ 'add-connection': [connection: SupplementalConnection] }>()
+
+const pendingConnection = ref<{ source: string; target: string } | null>(null)
+const pendingLabel = ref('')
+const pendingColor = ref('#ef4444')
+
+const colorOptions = [
+  { value: '#ef4444', label: 'Red' },
+  { value: '#000000', label: 'Black' },
+  { value: '#3b82f6', label: 'Blue' },
+  { value: '#eab308', label: 'Yellow' },
+  { value: '#22c55e', label: 'Green' },
+  { value: '#a855f7', label: 'Purple' },
+  { value: '#f97316', label: 'Orange' },
+] as const
+
+onConnect(({ source, target }: { source: string; target: string }) => {
+  // Ignore if duplicate supplemental connection
+  if (graph.value?.edges.some((e) => e.source === source && e.target === target && e.type === 'supplemental') ?? false)
+    return
+  pendingConnection.value = { source, target }
+  pendingLabel.value = ''
+  pendingColor.value = '#ef4444'
+})
+
+function getNodeLabel(id: string): string {
+  return graph.value?.nodes?.find((n) => n?.id === id)?.data?.label ?? id
+}
+
+function confirmConnection() {
+  if (!pendingConnection.value || !graph.value) return
+  const { source, target } = pendingConnection.value
+  const connection: SupplementalConnection = {
+    parent: source,
+    child: target,
+    label: pendingLabel.value,
+    color: pendingColor.value,
+  }
+  graph.value.edges = [
+    ...graph.value.edges,
+    {
+      id: `supplemental:${source}->${target}`,
+      source,
+      target,
+      label: connection.label,
+      data: { connection },
+      type: 'supplemental',
+      style: { stroke: connection.color },
+    },
+  ]
+  emit('add-connection', connection)
+  pendingConnection.value = null
+}
+
+function cancelConnection() {
+  pendingConnection.value = null
+}
 
 const edgeTypeOptions = [
   { value: 'step', label: 'Step' },
@@ -97,7 +156,10 @@ watch(
   { deep: true },
 )
 
-function entityGraph({ entities, relationships }: GroupStructure, matches: CompanyMatches = {}): EntityGraph {
+function entityGraph(
+  { entities, relationships, supplementalConnections = [] }: GroupStructure,
+  matches: CompanyMatches = {},
+): EntityGraph {
   return {
     nodes: entities
       .map((entity) => {
@@ -109,21 +171,33 @@ function entityGraph({ entities, relationships }: GroupStructure, matches: Compa
         data: { label: entity.name, entity },
         position: { x: 0, y: 0 },
         type: 'company',
+        connectable: true,
       })),
-    edges: relationships.map((relationship) => ({
-      id: `${relationship.parent}->${relationship.child}`,
-      source: relationship.parent,
-      target: relationship.child,
-      label: toggleControls.value.includes('showEdgeLabels')
-        ? toggleControls.value.includes('hide100PercentLabels') && relationship.percentageOwnership >= 100
-          ? ''
-          : `${relationship.percentageOwnership.toFixed(0)}%`
-        : '',
-      markerStart: 'circle',
-      markerEnd: 'circle',
-      data: { relationship },
-      type: edgeType.value,
-    })),
+    edges: [
+      ...relationships.map((relationship) => ({
+        id: `${relationship.parent}->${relationship.child}`,
+        source: relationship.parent,
+        target: relationship.child,
+        label: toggleControls.value.includes('showEdgeLabels')
+          ? toggleControls.value.includes('hide100PercentLabels') && relationship.percentageOwnership >= 100
+            ? ''
+            : `${relationship.percentageOwnership.toFixed(0)}%`
+          : '',
+        markerStart: 'circle',
+        markerEnd: 'circle',
+        data: { relationship },
+        type: edgeType.value,
+      })),
+      ...supplementalConnections.map((connection) => ({
+        id: `supplemental:${connection.parent}->${connection.child}`,
+        source: connection.parent,
+        target: connection.child,
+        label: connection.label,
+        data: { connection },
+        type: 'supplemental',
+        style: { stroke: connection.color },
+      })),
+    ],
   }
 }
 
@@ -200,12 +274,49 @@ const DEFAULT_EDGE_PROPS: Partial<BaseEdgeProps> = {
     <GvButton @click="layoutGraph" variant="secondary" class="mb-0!">Reset layout</GvButton>
   </div>
 
+  <div
+    v-if="pendingConnection"
+    class="fixed inset-0 z-2000 flex items-center justify-center bg-black/40"
+    @click.self="cancelConnection"
+  >
+    <div class="bg-white p-6 max-w-sm w-full mx-4 border-2 border-black">
+      <h2 class="govuk-heading-m">Add connection</h2>
+      <p class="govuk-body">
+        <strong>{{ getNodeLabel(pendingConnection.source) }}</strong>
+        &rarr;
+        <strong>{{ getNodeLabel(pendingConnection.target) }}</strong>
+      </p>
+      <div class="govuk-form-group">
+        <label class="govuk-label" for="pending-label">Label</label>
+        <input
+          id="pending-label"
+          class="govuk-input"
+          type="text"
+          v-model="pendingLabel"
+          @keyup.enter="confirmConnection"
+          @keyup.escape="cancelConnection"
+        />
+      </div>
+      <div class="govuk-form-group">
+        <label class="govuk-label" for="pending-color">Color</label>
+        <select id="pending-color" class="govuk-select" v-model="pendingColor">
+          <option v-for="option in colorOptions" :key="option.value" :value="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+      <div class="flex gap-2">
+        <GvButton @click="confirmConnection">Confirm</GvButton>
+        <GvButton variant="secondary" @click="cancelConnection">Cancel</GvButton>
+      </div>
+    </div>
+  </div>
+
   <section class="h-200" data-testid="graph-section">
     <VueFlow
       v-if="graph"
       :nodes="graph.nodes"
       :edges="graph.edges"
-      :nodes-connectable="false"
       fit-view-on-init
       @nodes-initialized="layoutGraph"
       class="border-2 border-blue-500"
@@ -228,6 +339,18 @@ const DEFAULT_EDGE_PROPS: Partial<BaseEdgeProps> = {
         <StraightEdge v-bind="{ ...props, ...DEFAULT_EDGE_PROPS }" />
       </template>
 
+      <template #edge-supplemental="props">
+        <BezierEdge
+          v-bind="{
+            ...props,
+            ...DEFAULT_EDGE_PROPS,
+            labelStyle: { fill: props.style?.stroke ?? '#ef4444', fontSize: '16px' },
+            labelBgStyle: { fill: 'var(--color-white)', stroke: props.style?.stroke ?? '#ef4444', strokeWidth: 3 },
+            style: { stroke: props.style?.stroke ?? '#ef4444', strokeWidth: 3, strokeDasharray: '8,4' },
+          }"
+        />
+      </template>
+
       <template #node-company="props">
         <EntityNode :id="props.id" :data="props.data" />
       </template>
@@ -245,5 +368,6 @@ const DEFAULT_EDGE_PROPS: Partial<BaseEdgeProps> = {
   background-color: var(--color-black);
   width: 8px;
   height: 8px;
+  cursor: crosshair;
 }
 </style>

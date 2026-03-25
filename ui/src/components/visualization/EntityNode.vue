@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Handle, Position, useVueFlow } from '@vue-flow/core'
+import { Handle, Position } from '@vue-flow/core'
 import CountryFlag from '@/components/visualization/CountryFlag.vue'
 import type { NodeData } from '@/db/models.ts'
 import { inject, computed, ref, type Ref } from 'vue'
@@ -26,19 +26,6 @@ const isoCodeDisplay = computed(() => {
   if (tj && tjoi && tj !== tjoi) return `${tj}/${tjoi}`
   return tj || tjoi
 })
-
-const { getConnectedEdges } = useVueFlow()
-
-let source = false
-let target = false
-for (const edge of getConnectedEdges(props.id)) {
-  if (edge.source === props.id) {
-    source = true
-  }
-  if (edge.target === props.id) {
-    target = true
-  }
-}
 
 const nodeClass = ['entity-node']
 const flagsClass = ['tax-jurisdiction-flags']
@@ -111,8 +98,8 @@ switch (props.data.entity.type) {
       <span v-else-if="isoCodeDisplay" class="iso-code">{{ isoCodeDisplay }}</span>
     </div>
   </div>
-  <Handle type="source" :position="Position.Bottom" v-if="source" />
-  <Handle type="target" :position="Position.Top" v-if="target" />
+  <Handle type="source" :position="Position.Bottom" />
+  <Handle type="target" :position="Position.Top" />
 </template>
 
 <style scoped>

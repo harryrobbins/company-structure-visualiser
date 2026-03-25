@@ -9,7 +9,7 @@ export interface NodeData {
 
 export interface EntityGraph {
   nodes: Node<NodeData>[]
-  edges: Edge<{ relationship: EntityRelationship }>[]
+  edges: Edge<{ relationship: EntityRelationship } | { connection: SupplementalConnection }>[]
 }
 
 export const ENTITY_TYPES = [
@@ -77,11 +77,19 @@ export function cleanUpRelationship(ownership: z.infer<typeof RelationshipRow>):
   }
 }
 
+export interface SupplementalConnection {
+  parent: string
+  child: string
+  label: string
+  color: string
+}
+
 export interface GroupStructure {
   groupName?: string
   ultimateParentEntity?: string
   entities: Entity[]
   relationships: EntityRelationship[]
+  supplementalConnections?: SupplementalConnection[]
 }
 
 export interface Visualization {
