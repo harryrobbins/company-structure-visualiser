@@ -24,9 +24,6 @@ export function useScreenshot() {
         style: {
           borderWidth: '0',
         },
-        filter(node) {
-          return !node.classList || !node.classList.contains('vue-flow__panel')
-        },
       })
     } catch (e) {
       error.value = e instanceof Error ? e.message : String(e)

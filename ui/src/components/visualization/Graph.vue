@@ -21,7 +21,7 @@ import SearchModal from '@/components/visualization/SearchModal.vue'
 import HighlightLegend from '@/components/visualization/HighlightLegend.vue'
 
 const { layout } = useLayout()
-const { fitView, onConnect, nodesConnectable } = useVueFlow()
+const { fitView, zoomIn, zoomOut, onConnect, nodesConnectable, vueFlowRef } = useVueFlow()
 
 nodesConnectable.value = true
 
@@ -505,7 +505,18 @@ function edgeHighlightProps(edgeId: string): Record<string, unknown> {
     </div>
   </div>
 
-  <section class="h-200" data-testid="graph-section">
+  <section class="h-200 flex flex-col" data-testid="graph-section">
+    <Controls :zoom-in="zoomIn" :zoom-out="zoomOut" :fit-view="fitView" :vue-flow-el="vueFlowRef">
+      <GvButton v-if="supplementalEdges.length > 0" variant="warning" class="mb-0!" @click="removeAllConnections">
+        Clear connections
+      </GvButton>
+      <SearchModal
+        v-model:search-query="searchQuery"
+        v-model:highlight-color="highlightColor"
+        v-model:search-toggles="searchToggles"
+      />
+      <HighlightRulesModal v-model="highlightRules" :available-jurisdictions="availableJurisdictions" />
+    </Controls>
     <VueFlow
       v-if="graph"
       :nodes="graph.nodes"
@@ -513,22 +524,9 @@ function edgeHighlightProps(edgeId: string): Record<string, unknown> {
       fit-view-on-init
       @nodes-initialized="layoutGraph"
       @edge-click="onEdgeClick"
-      class="border-2 border-blue-500"
+      class="border-2 border-t-0 border-blue-500 flex-1 min-h-0"
     >
       <template #default>
-        <Panel position="top-left" class="w-full m-0! z-1000 border-b-2 border-blue-500">
-          <Controls>
-            <GvButton v-if="supplementalEdges.length > 0" variant="warning" class="mb-0!" @click="removeAllConnections">
-              Clear connections
-            </GvButton>
-            <SearchModal
-              v-model:search-query="searchQuery"
-              v-model:highlight-color="highlightColor"
-              v-model:search-toggles="searchToggles"
-            />
-            <HighlightRulesModal v-model="highlightRules" :available-jurisdictions="availableJurisdictions" />
-          </Controls>
-        </Panel>
         <Panel position="bottom-right" class="m-2!">
           <HighlightLegend
             :search-query="searchQuery"
@@ -578,8 +576,8 @@ function edgeHighlightProps(edgeId: string): Record<string, unknown> {
 
 .vue-flow__handle {
   background-color: var(--color-black);
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   cursor: crosshair;
 }
 </style>

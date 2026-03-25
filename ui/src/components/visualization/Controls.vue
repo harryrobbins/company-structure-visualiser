@@ -1,24 +1,29 @@
 <script setup lang="ts">
-import { useVueFlow } from '@vue-flow/core'
 import { OhVueIcon } from 'oh-vue-icons'
 import GvButton from '@/components/govuk/Button.vue'
 import { useScreenshot } from '@/components/visualization/useScreenshot'
 
-const { zoomIn, zoomOut, fitView, vueFlowRef } = useVueFlow()
+const props = defineProps<{
+  zoomIn: () => void
+  zoomOut: () => void
+  fitView: () => void
+  vueFlowEl?: HTMLElement | null
+}>()
+
 const { capture } = useScreenshot()
 
 function doScreenshot() {
-  if (!vueFlowRef.value) {
+  if (!props.vueFlowEl) {
     console.warn('VueFlow element not found')
     return
   }
 
-  capture(vueFlowRef.value)
+  capture(props.vueFlowEl)
 }
 </script>
 
 <template>
-  <div class="w-full flex bg-blue-50 p-2 text-blue-500 justify-between items-center">
+  <div class="w-full flex bg-blue-50 border-2 border-blue-500 p-2 text-blue-500 justify-between items-center">
     <div class="flex gap-2 items-center">
       <slot />
     </div>
