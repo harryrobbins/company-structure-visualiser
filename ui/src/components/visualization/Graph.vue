@@ -43,7 +43,7 @@ const colorOptions = [
 // --- Node search / highlight ---
 const searchQuery = ref('')
 const highlightColor = ref('#ef4444')
-const highlightParents = ref(false)
+const searchToggles = ref<string[]>(['highlightParents'])
 
 const matchedNodeIds = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
@@ -62,7 +62,7 @@ const matchedNodeIds = computed(() => {
 
 const highlightedNodeIds = computed(() => {
   const matched = matchedNodeIds.value
-  if (!highlightParents.value || !graph.value || matched.size === 0) return matched
+  if (!searchToggles.value.includes('highlightParents') || !graph.value || matched.size === 0) return matched
   const all = new Set(matched)
   const queue = [...matched]
   while (queue.length) {
@@ -476,14 +476,14 @@ function edgeHighlightProps(edgeId: string): Record<string, unknown> {
                   {{ option.label }}
                 </option>
               </select>
-              <div class="govuk-checkboxes govuk-checkboxes--small mb-0!" @pointerdown.stop>
+              <GvCheckboxes v-model="searchToggles" form-group-class="mb-0!" size="small" @pointerdown.stop>
                 <GvCheckbox
-                  v-model="highlightParents"
+                  value="highlightParents"
                   id="highlight-parents"
                   label="Parents"
                   label-class="whitespace-nowrap"
                 />
-              </div>
+              </GvCheckboxes>
             </div>
             <GvButton v-if="supplementalEdges.length > 0" variant="warning" class="mb-0!" @click="removeAllConnections">
               Remove all custom connections ({{ supplementalEdges.length }})
