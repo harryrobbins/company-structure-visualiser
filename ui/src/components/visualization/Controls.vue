@@ -8,6 +8,7 @@ const props = defineProps<{
   zoomOut: () => void
   fitView: () => void
   vueFlowEl?: HTMLElement | null
+  screenshotFilename?: string
 }>()
 
 const { capture } = useScreenshot()
@@ -18,7 +19,7 @@ function doScreenshot() {
     return
   }
 
-  capture(props.vueFlowEl)
+  capture(props.vueFlowEl, props.screenshotFilename)
 }
 </script>
 

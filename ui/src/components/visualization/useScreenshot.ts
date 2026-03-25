@@ -4,8 +4,8 @@ import { ref } from 'vue'
 export function useScreenshot() {
   const error = ref<string | null>()
 
-  async function capture(el: HTMLElement) {
-    const fileName = `vue-flow-screenshot-${Date.now()}`
+  async function capture(el: HTMLElement, fileName?: string) {
+    const resolvedFileName = fileName || `chart-export-${Date.now()}`
 
     // HACK force edges to have a black stroke, otherwise they are excluded from the image
     for (const edgePath of el.querySelectorAll('svg path.vue-flow__edge-path')) {
@@ -35,7 +35,7 @@ export function useScreenshot() {
 
     // immediately download the image if shouldDownload is true
     const link = document.createElement('a')
-    link.download = `${fileName}.png`
+    link.download = `${resolvedFileName}.png`
     link.href = data
     link.click()
   }

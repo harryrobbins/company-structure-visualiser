@@ -272,6 +272,29 @@ const props = defineProps<{
   matches?: CompanyMatches
 }>()
 
+function sanitizeForFilename(str: string): string {
+  return str
+    .replace(/[^a-zA-Z0-9_-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .toLowerCase()
+}
+
+const screenshotFilename = computed(() => {
+  const parts: string[] = []
+
+  if (props.structure.groupName) {
+    parts.push(sanitizeForFilename(props.structure.groupName))
+  } else if (props.structure.ultimateParentEntity) {
+    parts.push(sanitizeForFilename(props.structure.ultimateParentEntity))
+  } else if (props.structure.entities.length > 0) {
+    parts.push(sanitizeForFilename(props.structure.entities[0]?.name || 'entity'))
+  }
+
+  parts.push(new Date().toISOString().slice(0, 10))
+
+  return parts.filter(Boolean).join('-') || `chart-export-${Date.now()}`
+})
 const graph = ref<EntityGraph>()
 let lastEntitiesKey = ''
 let lastRelationshipsKey = ''
@@ -542,7 +565,13 @@ function edgeHighlightProps(edgeId: string): Record<string, unknown> {
   </div>
 
   <section class="h-200 flex flex-col" data-testid="graph-section">
-    <Controls :zoom-in="zoomIn" :zoom-out="zoomOut" :fit-view="fitView" :vue-flow-el="vueFlowRef">
+    <Controls
+      :zoom-in="zoomIn"
+      :zoom-out="zoomOut"
+      :fit-view="fitView"
+      :vue-flow-el="vueFlowRef"
+      :screenshot-filename="screenshotFilename"
+    >
       <GvButton @click="layoutGraph" variant="warning" class="mb-0!">Reset layout</GvButton>
       <GvButton v-if="supplementalEdges.length > 0" variant="warning" class="mb-0!" @click="removeAllConnections">
         Clear connections
