@@ -27,7 +27,7 @@ const edgeTypeOptions = [
 type EdgeType = (typeof edgeTypeOptions)[number]['value']
 const edgeType = ref<EdgeType>('step')
 const showCustomControls = ref(false)
-const toggleControls = ref<string[]>(['showEdgeLabels'])
+const toggleControls = ref<string[]>(['showEdgeLabels', 'hide100PercentLabels'])
 
 const props = defineProps<{
   structure: GroupStructure
@@ -85,7 +85,11 @@ function entityGraph({ entities, relationships }: GroupStructure, matches: Compa
       id: `${relationship.parent}->${relationship.child}`,
       source: relationship.parent,
       target: relationship.child,
-      label: toggleControls.value.includes('showEdgeLabels') ? `${relationship.percentageOwnership.toFixed(0)}%` : '',
+      label: toggleControls.value.includes('showEdgeLabels')
+        ? toggleControls.value.includes('hide100PercentLabels') && relationship.percentageOwnership >= 100
+          ? ''
+          : `${relationship.percentageOwnership.toFixed(0)}%`
+        : '',
       markerStart: 'circle',
       markerEnd: 'circle',
       data: { relationship },
@@ -122,6 +126,12 @@ const DEFAULT_EDGE_PROPS: Partial<BaseEdgeProps> = {
         value="showEdgeLabels"
         id="show-edge-labels"
         label="Show edge labels"
+        label-class="whitespace-nowrap"
+      />
+      <GvCheckbox
+        value="hide100PercentLabels"
+        id="hide-100-percent-labels"
+        label="Hide 100% ownership labels"
         label-class="whitespace-nowrap"
       />
     </GvCheckboxes>
