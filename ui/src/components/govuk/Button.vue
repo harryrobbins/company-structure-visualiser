@@ -8,7 +8,7 @@ const buttonElement = ref(null)
 interface ButtonProps {
   to?: RouteLocationRaw
   isStartButton?: boolean
-  variant?: 'primary' | 'secondary' | 'warning'
+  variant?: 'primary' | 'secondary' | 'info' | 'warning'
   href?: string
   disabled?: boolean
   id?: string
@@ -62,6 +62,7 @@ function handleKeyDownSpace(): void {
     :class="{
       'govuk-button--primary': variant === 'primary' || !variant,
       'govuk-button--secondary': variant === 'secondary',
+      'bg-blue-500! shadow-bottom! text-white focus:text-white!': variant === 'info',
       'govuk-button--warning': variant === 'warning',
       'govuk-button--start': isStartButton,
     }"

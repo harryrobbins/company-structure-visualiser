@@ -14,6 +14,9 @@ import GvButton from '@/components/govuk/Button.vue'
 import GvCheckboxes from '@/components/govuk/Checkboxes.vue'
 import GvCheckbox from '@/components/govuk/Checkbox.vue'
 import ShowHideLink from '@/components/govuk/ShowHideLink.vue'
+import ColorSelect from '@/components/visualization/ColorSelect.vue'
+import HighlightRulesModal from '@/components/visualization/HighlightRulesModal.vue'
+import type { HighlightRule } from '@/components/visualization/HighlightRulesModal.vue'
 
 const { layout } = useLayout()
 const { fitView, onConnect, nodesConnectable } = useVueFlow()
@@ -29,16 +32,6 @@ const emit = defineEmits<{
 const pendingConnection = ref<{ source: string; target: string } | null>(null)
 const pendingLabel = ref('')
 const pendingColor = ref('#ef4444')
-
-const colorOptions = [
-  { value: '#ef4444', label: 'Red' },
-  { value: '#000000', label: 'Black' },
-  { value: '#3b82f6', label: 'Blue' },
-  { value: '#eab308', label: 'Yellow' },
-  { value: '#22c55e', label: 'Green' },
-  { value: '#a855f7', label: 'Purple' },
-  { value: '#f97316', label: 'Orange' },
-] as const
 
 // --- Node search / highlight ---
 const searchQuery = ref('')
@@ -86,13 +79,76 @@ const highlightedEdgeIds = computed(() => {
   )
 })
 
+// --- Rule-based highlight ---
+const highlightRules = ref<HighlightRule[]>([])
+
+const ruleHighlightedNodeColorMap = computed(() => {
+  const map = new Map<string, string>()
+  if (!graph.value || highlightRules.value.length === 0) return map
+  for (const node of graph.value.nodes) {
+    const entity = node.data?.entity
+    if (!entity) continue
+    for (const rule of highlightRules.value) {
+      const entityValue =
+        rule.field === 'type'
+          ? entity.type
+          : rule.field === 'taxJurisdictionOfIncorporation'
+            ? entity.taxJurisdictionOfIncorporation
+            : entity.taxJurisdiction
+      if (entityValue === rule.value) {
+        // First matching rule wins the color for this node
+        if (!map.has(node.id)) {
+          map.set(node.id, rule.color)
+        }
+      }
+    }
+  }
+  return map
+})
+
+// --- Merged highlight color map (node id → color) ---
+const nodeHighlightColorMap = computed(() => {
+  const map = new Map<string, string>()
+  // Search-based highlights
+  for (const id of highlightedNodeIds.value) {
+    map.set(id, highlightColor.value)
+  }
+  // Rule-based highlights (rule color takes precedence if not already search-highlighted)
+  for (const [id, color] of ruleHighlightedNodeColorMap.value) {
+    if (!map.has(id)) {
+      map.set(id, color)
+    }
+  }
+  return map
+})
+
+// --- Merged edge highlights ---
+const allHighlightedEdgeColors = computed(() => {
+  const map = new Map<string, string>()
+  if (!graph.value) return map
+  // Search-based edge highlights
+  for (const edgeId of highlightedEdgeIds.value) {
+    map.set(edgeId, highlightColor.value)
+  }
+  return map
+})
+
+// Available jurisdictions for the rules modal
+const availableJurisdictions = computed(() => {
+  if (!graph.value) return []
+  const jurisdictions = new Set<string>()
+  for (const node of graph.value.nodes) {
+    const entity = node.data?.entity
+    if (!entity) continue
+    if (entity.taxJurisdiction) jurisdictions.add(entity.taxJurisdiction)
+    if (entity.taxJurisdictionOfIncorporation) jurisdictions.add(entity.taxJurisdictionOfIncorporation)
+  }
+  return [...jurisdictions].sort()
+})
+
 provide(
-  'highlightedNodeIds',
-  computed(() => highlightedNodeIds.value),
-)
-provide(
-  'highlightColor',
-  computed(() => highlightColor.value),
+  'nodeHighlightColorMap',
+  computed(() => nodeHighlightColorMap.value),
 )
 
 onConnect(({ source, target }: { source: string; target: string }) => {
@@ -308,11 +364,12 @@ const DEFAULT_EDGE_PROPS: Partial<BaseEdgeProps> = {
 }
 
 function edgeHighlightProps(edgeId: string): Record<string, unknown> {
-  if (!highlightedEdgeIds.value.has(edgeId)) return {}
+  const color = allHighlightedEdgeColors.value.get(edgeId)
+  if (!color) return {}
   return {
-    style: { stroke: highlightColor.value, strokeWidth: 4 },
-    labelStyle: { fill: highlightColor.value, fontSize: '16px' },
-    labelBgStyle: { fill: 'var(--color-white)', stroke: highlightColor.value, strokeWidth: 3 },
+    style: { stroke: color, strokeWidth: 4 },
+    labelStyle: { fill: color, fontSize: '16px' },
+    labelBgStyle: { fill: 'var(--color-white)', stroke: color, strokeWidth: 3 },
   }
 }
 </script>
@@ -437,11 +494,7 @@ function edgeHighlightProps(edgeId: string): Record<string, unknown> {
       </div>
       <div class="govuk-form-group">
         <label class="govuk-label" for="pending-color">Color</label>
-        <select id="pending-color" class="govuk-select" v-model="pendingColor">
-          <option v-for="option in colorOptions" :key="option.value" :value="option.value">
-            {{ option.label }}
-          </option>
-        </select>
+        <ColorSelect v-model="pendingColor" id="pending-color" />
       </div>
       <div class="flex gap-2">
         <GvButton @click="confirmConnection">Confirm</GvButton>
@@ -463,6 +516,10 @@ function edgeHighlightProps(edgeId: string): Record<string, unknown> {
       <template #default>
         <Panel position="top-left" class="w-full m-0! z-1000 border-b-2 border-blue-500">
           <Controls>
+            <GvButton v-if="supplementalEdges.length > 0" variant="warning" class="mb-0!" @click="removeAllConnections">
+              Clear connections
+            </GvButton>
+            <HighlightRulesModal v-model="highlightRules" :available-jurisdictions="availableJurisdictions" />
             <div class="flex items-center gap-2">
               <input
                 id="node-search"
@@ -471,11 +528,7 @@ function edgeHighlightProps(edgeId: string): Record<string, unknown> {
                 placeholder="Search nodes…"
                 class="govuk-input mb-0! h-8 w-48 text-sm bg-white text-black"
               />
-              <select id="highlight-color" class="govuk-select mb-0! h-8 text-sm min-w-25!" v-model="highlightColor">
-                <option v-for="option in colorOptions" :key="option.value" :value="option.value">
-                  {{ option.label }}
-                </option>
-              </select>
+              <ColorSelect v-model="highlightColor" id="highlight-color" class="mb-0! h-8 text-sm" />
               <GvCheckboxes v-model="searchToggles" form-group-class="mb-0!" size="small" @pointerdown.stop>
                 <GvCheckbox
                   value="highlightParents"
@@ -485,9 +538,6 @@ function edgeHighlightProps(edgeId: string): Record<string, unknown> {
                 />
               </GvCheckboxes>
             </div>
-            <GvButton v-if="supplementalEdges.length > 0" variant="warning" class="mb-0!" @click="removeAllConnections">
-              Remove all custom connections ({{ supplementalEdges.length }})
-            </GvButton>
           </Controls>
         </Panel>
       </template>

@@ -16,11 +16,10 @@ const showCountryFlags = inject<{ value: boolean }>('showCountryFlags', { value:
 const extraNodePadding = inject<Ref<number>>('extraNodePadding', ref(0))
 const showUnconnectedHandles = inject<Ref<boolean>>('showUnconnectedHandles', ref(true))
 
-const highlightedNodeIds = inject<{ value: Set<string> }>('highlightedNodeIds', { value: new Set() })
-const _highlightColor = inject<{ value: string }>('highlightColor', { value: '#ef4444' })
+const nodeHighlightColorMap = inject<{ value: Map<string, string> }>('nodeHighlightColorMap', { value: new Map() })
 
-const isHighlighted = computed(() => highlightedNodeIds.value?.has(props.id) ?? false)
-const highlightColorValue = computed(() => _highlightColor.value ?? '#ef4444')
+const isHighlighted = computed(() => nodeHighlightColorMap.value?.has(props.id) ?? false)
+const highlightColorValue = computed(() => nodeHighlightColorMap.value?.get(props.id) ?? '#ef4444')
 
 const usesSvgBorder = computed(() => {
   const hasSvgShape = nodeClass.some((clz) => clz.endsWith('diamond') || clz.endsWith('triangle'))
