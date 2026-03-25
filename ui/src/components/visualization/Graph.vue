@@ -18,6 +18,7 @@ import ColorSelect from '@/components/visualization/ColorSelect.vue'
 import HighlightRulesModal from '@/components/visualization/HighlightRulesModal.vue'
 import type { HighlightRule } from '@/components/visualization/HighlightRulesModal.vue'
 import SearchModal from '@/components/visualization/SearchModal.vue'
+import HighlightLegend from '@/components/visualization/HighlightLegend.vue'
 
 const { layout } = useLayout()
 const { fitView, onConnect, nodesConnectable } = useVueFlow()
@@ -527,6 +528,14 @@ function edgeHighlightProps(edgeId: string): Record<string, unknown> {
             />
             <HighlightRulesModal v-model="highlightRules" :available-jurisdictions="availableJurisdictions" />
           </Controls>
+        </Panel>
+        <Panel position="bottom-right" class="m-2!">
+          <HighlightLegend
+            :search-query="searchQuery"
+            :highlight-color="highlightColor"
+            :highlight-parents="searchToggles.includes('highlightParents')"
+            :highlight-rules="highlightRules"
+          />
         </Panel>
       </template>
 
