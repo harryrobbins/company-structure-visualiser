@@ -2,7 +2,7 @@
 import { Handle, Position, useVueFlow } from '@vue-flow/core'
 import CountryFlag from '@/components/visualization/CountryFlag.vue'
 import type { NodeData } from '@/db/models.ts'
-import { inject, computed } from 'vue'
+import { inject, computed, ref, type Ref } from 'vue'
 import { getAlpha2Code } from 'i18n-iso-countries'
 
 interface Props {
@@ -13,6 +13,7 @@ interface Props {
 const props = defineProps<Props>()
 
 const showCountryFlags = inject<{ value: boolean }>('showCountryFlags', { value: true })
+const extraNodePadding = inject<Ref<number>>('extraNodePadding', ref(0))
 
 function toIsoCode(countryName: string | undefined): string {
   if (!countryName) return ''
@@ -73,14 +74,22 @@ switch (props.data.entity.type) {
 </script>
 
 <template>
-  <div :class="nodeClass">
-    <div v-if="nodeClass.some((clz) => clz.endsWith('triangle'))" class="triangle-container">
+  <div :class="nodeClass" :style="extraNodePadding ? { padding: `calc(1rem + ${extraNodePadding}px)` } : {}">
+    <div
+      v-if="nodeClass.some((clz) => clz.endsWith('triangle'))"
+      class="triangle-container"
+      :style="extraNodePadding ? { minWidth: `${180 + extraNodePadding * 2}px`, minHeight: `${100 + extraNodePadding * 2}px` } : {}"
+    >
       <svg viewBox="0 0 100 87" preserveAspectRatio="none">
         <polygon points="50,0 0,86.5 100,86.5" fill="transparent" stroke="#000" stroke-width="1" />
       </svg>
       <p class="govuk-body">{{ props.data.label }}</p>
     </div>
-    <div v-else-if="nodeClass.some((clz) => clz.endsWith('diamond'))" class="diamond-container">
+    <div
+      v-else-if="nodeClass.some((clz) => clz.endsWith('diamond'))"
+      class="diamond-container"
+      :style="extraNodePadding ? { width: `${150 + extraNodePadding * 2}px`, height: `${150 + extraNodePadding * 2}px` } : {}"
+    >
       <svg viewBox="0 0 100 100" preserveAspectRatio="none">
         <polygon points="50,0 100,50 50,100 0,50" fill="transparent" stroke="#000" stroke-width="1" />
       </svg>

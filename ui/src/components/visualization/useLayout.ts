@@ -10,6 +10,7 @@ export interface LayoutOptions {
   direction?: LayoutDirection
   extraHPadding?: number
   extraVPadding?: number
+  extraNodePadding?: number
 }
 
 /**
@@ -21,7 +22,7 @@ export function useLayout() {
 
   function layout(
     { nodes, edges }: EntityGraph,
-    { direction = 'TB', extraHPadding = 0, extraVPadding = 0 }: LayoutOptions = {},
+    { direction = 'TB', extraHPadding = 0, extraVPadding = 0, extraNodePadding = 0 }: LayoutOptions = {},
   ) {
     // we create a new graph instance, in case some nodes/edges were removed, otherwise dagre would act as if they were still there
     const dagreGraph = new graphlib.Graph()
@@ -35,8 +36,8 @@ export function useLayout() {
       const graphNode = findNode(node.id)
       if (graphNode) {
         dagreGraph.setNode(node.id, {
-          width: graphNode.dimensions.width + extraHPadding,
-          height: graphNode.dimensions.height + extraVPadding,
+          width: graphNode.dimensions.width + extraHPadding + extraNodePadding * 2,
+          height: graphNode.dimensions.height + extraVPadding + extraNodePadding * 2,
         })
       }
     }

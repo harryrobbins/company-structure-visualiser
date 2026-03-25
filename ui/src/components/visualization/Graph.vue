@@ -25,7 +25,7 @@ const edgeTypeOptions = [
 ] as const
 
 const spacingOptions = [
-  { value: 0, label: 'None' },
+  { value: 0, label: 'Default' },
   { value: 15, label: 'Comfortable' },
   { value: 30, label: 'Spacious' },
   { value: 50, label: 'Generous' },
@@ -42,6 +42,12 @@ const toggleControls = ref<string[]>(['showEdgeLabels', 'hide100PercentLabels', 
 provide(
   'showCountryFlags',
   computed(() => toggleControls.value.includes('showCountryFlags')),
+)
+
+const extraNodePadding = ref<SpacingValue>(0)
+provide(
+  'extraNodePadding',
+  computed(() => extraNodePadding.value),
 )
 
 const props = defineProps<{
@@ -61,12 +67,13 @@ async function layoutGraph() {
       direction: 'TB',
       extraHPadding: extraHSpacing.value,
       extraVPadding: extraVSpacing.value,
+      extraNodePadding: extraNodePadding.value,
     })
   }
   await nextTick(fitView)
 }
 
-watch([extraHSpacing, extraVSpacing], layoutGraph)
+watch([extraHSpacing, extraVSpacing, extraNodePadding], layoutGraph)
 
 // Watch for edge type changes and regenerate the graph
 watch(edgeType, () => {
@@ -161,7 +168,16 @@ const DEFAULT_EDGE_PROPS: Partial<BaseEdgeProps> = {
     </GvCheckboxes>
 
     <div class="flex flex-col gap-1">
-      <span class="govuk-label font-bold! mb-0!">Extra spacing</span>
+      <span class="govuk-label font-bold! mb-0!">Node size</span>
+      <GvSelect v-model="extraNodePadding" id="node-size-select" form-group-class="mb-0!">
+        <option v-for="option in spacingOptions" :key="option.value" :value="option.value">
+          {{ option.label }}
+        </option>
+      </GvSelect>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <span class="govuk-label font-bold! mb-0!">Spacing</span>
       <div class="flex flex-row items-center gap-2">
         <label for="h-spacing-select" class="govuk-label whitespace-nowrap mb-0!">Horizontal</label>
         <GvSelect v-model="extraHSpacing" id="h-spacing-select" form-group-class="mb-0!">
