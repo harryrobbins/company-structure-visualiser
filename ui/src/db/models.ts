@@ -78,6 +78,8 @@ export function cleanUpRelationship(ownership: z.infer<typeof RelationshipRow>):
 }
 
 export interface GroupStructure {
+  groupName?: string
+  ultimateParentEntity?: string
   entities: Entity[]
   relationships: EntityRelationship[]
 }

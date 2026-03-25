@@ -36,7 +36,7 @@ watchEffect(async () => {
 
   function validateCrumb() {
     crumbs.push({
-      text: visualization?.value?.filename || 'Validate Upload',
+      text: visualization?.value?.structure?.groupName || visualization?.value?.filename || 'Validate Upload',
       location: { name: 'validate', params: { uploadId } },
     })
   }

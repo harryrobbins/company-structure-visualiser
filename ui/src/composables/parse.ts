@@ -53,7 +53,23 @@ export async function parseCompanyOwnershipWorkbook(data: ArrayBuffer): Promise<
       return relationship
     })
 
-  return { entities, relationships }
+  const { groupName, ultimateParentEntity } = extractMetadata(entitySheet)
+
+  return { groupName, ultimateParentEntity, entities, relationships }
+}
+
+function extractMetadata(sheet: Worksheet): { groupName?: string; ultimateParentEntity?: string } {
+  let groupName: string | undefined
+  let ultimateParentEntity: string | undefined
+
+  sheet.eachRow((row) => {
+    const label = row.getCell(1).value?.toString()?.trim()
+    const value = row.getCell(2).value?.toString()?.trim() || undefined
+    if (label === 'Name of Group:') groupName = value
+    if (label === 'Ultimate Parent Entity:') ultimateParentEntity = value
+  })
+
+  return { groupName, ultimateParentEntity }
 }
 
 function toJson<Z extends z.ZodMiniObject, T = z.infer<Z>>(sheet: Worksheet, schema: Z): T[] {

@@ -23,6 +23,8 @@ describe('parse', () => {
     console.log(JSON.stringify(result, null, 2))
 
     expect(result).deep.eq({
+      groupName: 'Group Plc',
+      ultimateParentEntity: 'Entity name 1',
       entities: [
         {
           id: '12345670',

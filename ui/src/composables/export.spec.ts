@@ -14,6 +14,7 @@ describe('export', () => {
     const original = await parseCompanyOwnershipWorkbook(await file('example.xlsx'))
 
     const edited = {
+      ...original,
       entities: original.entities.map((e) =>
         e.id === '12345670' ? { ...e, name: 'Google LLC' } : e,
       ),
@@ -25,12 +26,26 @@ describe('export', () => {
     const exported = await exportGroupStructureToXlsx(edited)
     const reimported = await parseCompanyOwnershipWorkbook(exported)
 
-    expect(reimported).deep.eq(edited)
+    // Entities and relationships should roundtrip exactly
+    expect(reimported.entities).deep.eq(edited.entities)
+    expect(reimported.relationships).deep.eq(edited.relationships)
+  })
+
+  it('should roundtrip group metadata', async () => {
+    const original = await parseCompanyOwnershipWorkbook(await file('example.xlsx'))
+
+    expect(original.groupName).toBe('Group Plc')
+    expect(original.ultimateParentEntity).toBe('Entity name 1')
+
+    const exported = await exportGroupStructureToXlsx(original)
+    const reimported = await parseCompanyOwnershipWorkbook(exported)
+
+    expect(reimported.groupName).toBe('Group Plc')
+    expect(reimported.ultimateParentEntity).toBe('Entity name 1')
   })
 
   it('should preserve taxJurisdictionOfIncorporation when different from taxJurisdiction', async () => {
     const original = await parseCompanyOwnershipWorkbook(await file('example.xlsx'))
-
     const exported = await exportGroupStructureToXlsx(original)
     const reimported = await parseCompanyOwnershipWorkbook(exported)
 
@@ -41,7 +56,6 @@ describe('export', () => {
 
   it('should default taxJurisdictionOfIncorporation to taxJurisdiction when they match', async () => {
     const original = await parseCompanyOwnershipWorkbook(await file('example.xlsx'))
-
     const exported = await exportGroupStructureToXlsx(original)
     const reimported = await parseCompanyOwnershipWorkbook(exported)
 

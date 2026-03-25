@@ -61,10 +61,10 @@ watch(
             :to="{ name: 'validate', params: { uploadId: visualization.id } }"
             class="govuk-link govuk-link--no-visited-state"
           >
-            {{ visualization.filename }}
+            {{ visualization.structure.groupName || visualization.filename }}
           </RouterLink>
           <br />
-          <small>{{ visualization.date.toLocaleString() }}</small>
+          <small>{{ visualization.structure.groupName ? visualization.filename + ' · ' : '' }}{{ visualization.date.toLocaleString() }}</small>
         </th>
         <td class="govuk-table__cell">
           <VisualizationStatusTag :visualization="visualization" />
