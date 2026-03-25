@@ -2,6 +2,8 @@
 import { Handle, Position, useVueFlow } from '@vue-flow/core'
 import CountryFlag from '@/components/visualization/CountryFlag.vue'
 import type { NodeData } from '@/db/models.ts'
+import { inject, computed } from 'vue'
+import { getAlpha2Code } from 'i18n-iso-countries'
 
 interface Props {
   id: string
@@ -9,6 +11,20 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
+const showCountryFlags = inject<{ value: boolean }>('showCountryFlags', { value: true })
+
+function toIsoCode(countryName: string | undefined): string {
+  if (!countryName) return ''
+  return getAlpha2Code(countryName, 'en') || ''
+}
+
+const isoCodeDisplay = computed(() => {
+  const tj = toIsoCode(props.data.entity.taxJurisdiction)
+  const tjoi = toIsoCode(props.data.entity.taxJurisdictionOfIncorporation)
+  if (tj && tjoi && tj !== tjoi) return `${tj}/${tjoi}`
+  return tj || tjoi
+})
 
 const { getConnectedEdges } = useVueFlow()
 
@@ -73,14 +89,17 @@ switch (props.data.entity.type) {
     <p v-else class="govuk-body">{{ props.data.label }}</p>
 
     <div :class="flagsClass">
-      <CountryFlag :country-name="props.data.entity.taxJurisdiction" />
-      <CountryFlag
-        v-if="
-          props.data.entity.taxJurisdictionOfIncorporation &&
-          props.data.entity.taxJurisdictionOfIncorporation !== props.data.entity.taxJurisdiction
-        "
-        :country-name="props.data.entity.taxJurisdictionOfIncorporation"
-      />
+      <template v-if="showCountryFlags">
+        <CountryFlag :country-name="props.data.entity.taxJurisdiction" />
+        <CountryFlag
+          v-if="
+            props.data.entity.taxJurisdictionOfIncorporation &&
+            props.data.entity.taxJurisdictionOfIncorporation !== props.data.entity.taxJurisdiction
+          "
+          :country-name="props.data.entity.taxJurisdictionOfIncorporation"
+        />
+      </template>
+      <span v-else-if="isoCodeDisplay" class="iso-code">{{ isoCodeDisplay }}</span>
     </div>
   </div>
   <Handle type="source" :position="Position.Bottom" v-if="source" />
@@ -201,10 +220,22 @@ switch (props.data.entity.type) {
   padding: 0;
   margin: 0;
   line-height: 0;
+  z-index: 1;
 }
 
 .tax-jurisdiction-flags--diamond {
   bottom: 25px;
   right: 25px;
+}
+
+.iso-code {
+  font-size: 0.75rem;
+  font-weight: bold;
+  line-height: 1;
+  background-color: var(--color-white);
+  border: 2px solid var(--color-black);
+  padding: 1px 3px;
+  transform: translate(4px, 4px);
+  display: inline-block;
 }
 </style>

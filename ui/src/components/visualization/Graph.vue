@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, watch, ref } from 'vue'
+import { nextTick, watch, ref, computed, provide } from 'vue'
 import { StepEdge, useVueFlow, type BaseEdgeProps, BezierEdge, StraightEdge } from '@vue-flow/core'
 import { VueFlow, Panel } from '@vue-flow/core'
 import Controls from '@/components/visualization/Controls.vue'
@@ -27,7 +27,9 @@ const edgeTypeOptions = [
 type EdgeType = (typeof edgeTypeOptions)[number]['value']
 const edgeType = ref<EdgeType>('step')
 const showCustomControls = ref(false)
-const toggleControls = ref<string[]>(['showEdgeLabels', 'hide100PercentLabels'])
+const toggleControls = ref<string[]>(['showEdgeLabels', 'hide100PercentLabels', 'showCountryFlags'])
+
+provide('showCountryFlags', computed(() => toggleControls.value.includes('showCountryFlags')))
 
 const props = defineProps<{
   structure: GroupStructure
@@ -132,6 +134,12 @@ const DEFAULT_EDGE_PROPS: Partial<BaseEdgeProps> = {
         value="hide100PercentLabels"
         id="hide-100-percent-labels"
         label="Hide 100% ownership labels"
+        label-class="whitespace-nowrap"
+      />
+      <GvCheckbox
+        value="showCountryFlags"
+        id="show-country-flags"
+        label="Show country flags"
         label-class="whitespace-nowrap"
       />
     </GvCheckboxes>
