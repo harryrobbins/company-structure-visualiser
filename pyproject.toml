@@ -11,7 +11,7 @@ dependencies = [
     "duckdb-extension-fts==1.5.0",
     "fastapi>=0.135.2",
     "jinja2>=3.1.6",
-    "openai>=2.30.0",
+    "openai>=2.29.0,<2.30.0", # TODO pinned for on estate
     "pydantic-settings>=2.13.1",
     "uvicorn>=0.42.0",
     "pyarrow>=23.0.1",
