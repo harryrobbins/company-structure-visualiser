@@ -3,29 +3,11 @@ import { fileURLToPath, URL } from 'node:url'
 import { mkdir, rename } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { defineConfig, type Plugin } from 'vite'
+import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 import tailwindcss from '@tailwindcss/vite'
-
-/**
- * HACK: Fixes issue with the CJS reference to @dagrejs/graphlib in @dagrejs/dagre@^2.
- * https://github.com/dagrejs/dagre/issues/492
- */
-function dagreGraphlibPlugin(): Plugin {
-  return {
-    name: 'dagre-graphlib-plugin',
-    enforce: 'pre',
-    transform(code, id) {
-      if (!id.includes('dagrejs') || id.includes('graphlib')) return
-      const modifiedCode = `
-        import * as __graphlib__ from '@dagrejs/graphlib';
-        ${code.replace(/g\(\s*["']@dagrejs\/graphlib["']\s*\)/g, '__graphlib__')}`
-      return { code: modifiedCode, map: null }
-    },
-  }
-}
 
 const appConfig: AppConfig = {
   basePath: process.env.BASE_PATH || '/',
@@ -38,6 +20,9 @@ export default defineConfig(() => {
     base: appConfig.basePath,
 
     css: {
+      lightningcss: {
+        errorRecovery: true,
+      },
       preprocessorOptions: {
         scss: {
           quietDeps: true,
@@ -50,20 +35,22 @@ export default defineConfig(() => {
       vue(),
       vueDevTools(),
       tailwindcss(),
-      dagreGraphlibPlugin(),
       viteStaticCopy({
         targets: [
           {
-            src: 'node_modules/govuk-frontend/dist/govuk/assets/*',
+            src: 'node_modules/govuk-frontend/dist/govuk/assets/**/*',
             dest: '',
+            rename: { stripBase: 5 },
           },
           {
             src: 'node_modules/swagger-ui-dist/swagger-ui-bundle.js',
             dest: 'swagger',
+            rename: { stripBase: true },
           },
           {
             src: 'node_modules/swagger-ui-dist/swagger-ui.css',
             dest: 'swagger',
+            rename: { stripBase: true },
           },
         ],
       }),
@@ -91,9 +78,6 @@ export default defineConfig(() => {
         },
       },
     ],
-    optimizeDeps: {
-      include: ['@dagrejs/dagre > @dagrejs/graphlib'],
-    },
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),

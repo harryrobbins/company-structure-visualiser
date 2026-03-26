@@ -1,5 +1,5 @@
 import dagre from '@dagrejs/dagre'
-import graphlib from '@dagrejs/graphlib'
+import * as graphlib from '@dagrejs/graphlib'
 import { Position, useVueFlow } from '@vue-flow/core'
 
 import type { EntityGraph } from '@/db/models.ts'
