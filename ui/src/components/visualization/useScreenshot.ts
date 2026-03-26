@@ -27,27 +27,30 @@ const SVG_PRESENTATION_ATTRS: Array<[keyof CSSStyleDeclaration, string]> = [
   ['visibility', 'visibility'],
 ]
 
-type AttrBackup = { el: SVGElement; attr: string; prev: string | null }[]
+type StyleBackup = { el: SVGElement; prop: string; prev: string }[]
 
-function inlineSvgPresentationAttrs(el: HTMLElement): AttrBackup {
-  const backup: AttrBackup = []
+function inlineSvgPresentationAttrs(el: HTMLElement): StyleBackup {
+  const backup: StyleBackup = []
   for (const svgEl of el.querySelectorAll<SVGElement>('svg, svg *')) {
     const computed = getComputedStyle(svgEl)
     for (const [cssProp, svgAttr] of SVG_PRESENTATION_ATTRS) {
       const value = computed[cssProp] as string
       if (value) {
-        backup.push({ el: svgEl, attr: svgAttr, prev: svgEl.getAttribute(svgAttr) })
-        svgEl.setAttribute(svgAttr, value)
+        // Save the current inline style value (may be a CSS variable or empty)
+        backup.push({ el: svgEl, prop: svgAttr, prev: svgEl.style.getPropertyValue(svgAttr) })
+        // Write via style.setProperty — this wins over both presentation attributes
+        // and any CSS variable references already in the style attribute
+        svgEl.style.setProperty(svgAttr, value)
       }
     }
   }
   return backup
 }
 
-function restoreSvgPresentationAttrs(backup: AttrBackup) {
-  for (const { el, attr, prev } of backup) {
-    if (prev === null) el.removeAttribute(attr)
-    else el.setAttribute(attr, prev)
+function restoreSvgPresentationAttrs(backup: StyleBackup) {
+  for (const { el, prop, prev } of backup) {
+    if (prev) el.style.setProperty(prop, prev)
+    else el.style.removeProperty(prop)
   }
 }
 
