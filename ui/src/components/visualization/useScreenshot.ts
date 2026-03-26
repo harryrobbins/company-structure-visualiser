@@ -27,15 +27,27 @@ const SVG_PRESENTATION_ATTRS: Array<[keyof CSSStyleDeclaration, string]> = [
   ['visibility', 'visibility'],
 ]
 
-function inlineSvgPresentationAttrs(el: HTMLElement) {
+type AttrBackup = { el: SVGElement; attr: string; prev: string | null }[]
+
+function inlineSvgPresentationAttrs(el: HTMLElement): AttrBackup {
+  const backup: AttrBackup = []
   for (const svgEl of el.querySelectorAll<SVGElement>('svg, svg *')) {
     const computed = getComputedStyle(svgEl)
     for (const [cssProp, svgAttr] of SVG_PRESENTATION_ATTRS) {
       const value = computed[cssProp] as string
       if (value) {
+        backup.push({ el: svgEl, attr: svgAttr, prev: svgEl.getAttribute(svgAttr) })
         svgEl.setAttribute(svgAttr, value)
       }
     }
+  }
+  return backup
+}
+
+function restoreSvgPresentationAttrs(backup: AttrBackup) {
+  for (const { el, attr, prev } of backup) {
+    if (prev === null) el.removeAttribute(attr)
+    else el.setAttribute(attr, prev)
   }
 }
 
@@ -45,10 +57,10 @@ export function useScreenshot() {
   async function capture(el: HTMLElement, fileName?: string) {
     const resolvedFileName = fileName || `chart-export-${Date.now()}`
 
-    // Inline computed SVG presentation attribute values so that CSS variables
-    // and stylesheet rules are resolved even in browsers where html-to-image
-    // cannot read them (e.g. Edge on Windows).
-    inlineSvgPresentationAttrs(el)
+    // Inline computed SVG presentation attribute values so CSS variables are
+    // resolved even in browsers where html-to-image cannot read them (e.g. Edge
+    // on Windows). Back up original values and restore afterwards.
+    const backup = inlineSvgPresentationAttrs(el)
 
     let data: string | null = null
     error.value = null
@@ -64,7 +76,8 @@ export function useScreenshot() {
     } catch (e) {
       error.value = e instanceof Error ? e.message : String(e)
       console.error(e)
-      return null
+    } finally {
+      restoreSvgPresentationAttrs(backup)
     }
 
     if (!data) return null
