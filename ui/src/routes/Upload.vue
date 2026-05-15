@@ -30,7 +30,7 @@ watch(
 </script>
 
 <template>
-  <h1 class="govuk-heading-xl">Company Visualizer</h1>
+  <h1 class="govuk-heading-xl">Company Visualiser</h1>
 
   <ErrorSummary v-if="uploadError" title="File upload failed" :description="uploadError" class="mb-4" />
   <FileUpload
@@ -49,7 +49,7 @@ watch(
   <LoadingSpinner v-if="visualizationLoading" />
   <ErrorSummary
     v-else-if="visualizationError"
-    title="Error loading visualizations"
+    title="Error loading visualisations"
     :description="visualizationError"
     class="mb-4"
   />

@@ -16,16 +16,16 @@ const { updateEntities, isLoading: updateLoading, error: updateError } = useUpda
 
 <template>
   <LoadingSpinner v-if="isLoading || updateLoading" />
-  <ErrorSummary v-else-if="error" title="Error loading visualization" :description="error" />
+  <ErrorSummary v-else-if="error" title="Error loading visualisation" :description="error" />
   <div v-else-if="visualization">
-    <ErrorSummary v-if="updateError" title="Error loading visualization" :description="updateError" />
+    <ErrorSummary v-if="updateError" title="Error loading visualisation" :description="updateError" />
 
     <GroupStructureTable :entities="visualization.structure.entities" @save="updateEntities" />
 
-    <p class="govuk-body">These companies are the ones I want to visualize.</p>
-    <Button :to="{ name: 'visualize', params: { uploadId } }" data-testid="confirm-and-visualize"> Confirm and visualize </Button>
+    <p class="govuk-body">These companies are the ones I want to visualise.</p>
+    <Button :to="{ name: 'visualize', params: { uploadId } }" data-testid="confirm-and-visualize"> Confirm and visualise </Button>
 
-    <p class="govuk-body">These companies are not the ones I want to visualize.</p>
+    <p class="govuk-body">These companies are not the ones I want to visualise.</p>
     <Button :to="{ name: 'match', params: { uploadId } }" data-testid="check-companies-house"> Check companies against Companies House database </Button>
 
     <p class="govuk-body">I want to export this group structure.</p>

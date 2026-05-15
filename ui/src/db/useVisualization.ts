@@ -81,7 +81,7 @@ export function useUpdateEntity(idRef: MaybeRefOrGetter<number>) {
       // Get the current visualization
       const visualization = await db.visualizations.get(id)
       if (!visualization) {
-        error.value = 'Visualization not found'
+        error.value = 'Visualisation not found'
         return
       }
 
@@ -128,7 +128,7 @@ export function useAddSupplementalConnection(idRef: MaybeRefOrGetter<number>) {
     try {
       const visualization = await db.visualizations.get(id)
       if (!visualization) {
-        error.value = 'Visualization not found'
+        error.value = 'Visualisation not found'
         return
       }
       await db.visualizations.update(id, {
@@ -158,7 +158,7 @@ export function useRemoveSupplementalConnection(idRef: MaybeRefOrGetter<number>)
     try {
       const visualization = await db.visualizations.get(id)
       if (!visualization) {
-        error.value = 'Visualization not found'
+        error.value = 'Visualisation not found'
         return
       }
       await db.visualizations.update(id, {
@@ -183,7 +183,7 @@ export function useRemoveSupplementalConnection(idRef: MaybeRefOrGetter<number>)
     try {
       const visualization = await db.visualizations.get(id)
       if (!visualization) {
-        error.value = 'Visualization not found'
+        error.value = 'Visualisation not found'
         return
       }
       await db.visualizations.update(id, {
@@ -215,7 +215,7 @@ export function useApplyCompanyMatches(idRef: MaybeRefOrGetter<number>) {
       // Get the current visualization
       const visualization = await db.visualizations.get(id)
       if (!visualization) {
-        error.value = 'Visualization not found'
+        error.value = 'Visualisation not found'
         return
       }
 

@@ -27,7 +27,7 @@ interface Breadcrumb {
 const breadcrumbs = ref<Breadcrumb[]>([])
 
 watchEffect(async () => {
-  const crumbs: Breadcrumb[] = [{ text: 'Visualize company structures', location: { name: 'home' } }]
+  const crumbs: Breadcrumb[] = [{ text: 'Visualise company structures', location: { name: 'home' } }]
   const uploadId = intParam('uploadId')
 
   function uploadCrumb() {
@@ -50,7 +50,7 @@ watchEffect(async () => {
 
   function visualizeCrumb() {
     crumbs.push({
-      text: 'Visualize',
+      text: 'Visualise',
       location: { name: 'visualize', params: { uploadId } },
     })
   }

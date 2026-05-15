@@ -5,8 +5,8 @@ import NumberedStep from '@/components/govuk/NumberedStep.vue'
 </script>
 
 <template>
-  <h1 class="govuk-heading-xl">Visualize company structures</h1>
-  <p class="govuk-body">Upload company group info to visualize structure.</p>
+  <h1 class="govuk-heading-xl">Visualise company structures</h1>
+  <p class="govuk-body">Upload company group info to visualise structure.</p>
   <p class="govuk-body">
     GAILZ can be used to fuzzy match provided company data against Companies House data, and to enrich the data with
     additional information such as company status and SIC codes.
@@ -24,7 +24,7 @@ import NumberedStep from '@/components/govuk/NumberedStep.vue'
       GAILZ will attempt to match the provided company data with Companies House data, and will enrich the data with
       additional information such as company status and SIC codes.
     </NumberedStep>
-    <NumberedStep color="pink" title="Visualize group structure">
+    <NumberedStep color="pink" title="Visualise group structure">
       View the group structure as an interactive graph, and explore the data in more detail.
     </NumberedStep>
   </NumberedSteps>

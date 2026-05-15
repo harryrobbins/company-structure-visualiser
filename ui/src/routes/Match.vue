@@ -25,18 +25,18 @@ const {
   </p>
 
   <LoadingSpinner v-if="isLoading || applyCompanyMatchesLoading" />
-  <ErrorSummary v-else-if="error" title="Error loading visualization" :description="error" />
+  <ErrorSummary v-else-if="error" title="Error loading visualisation" :description="error" />
   <div v-else-if="visualization">
     <ErrorSummary
       v-if="applyCompanyMatchesError"
-      title="Error applying company matches to visualization"
+      title="Error applying company matches to visualisation"
       :description="applyCompanyMatchesError"
     />
 
     <CompanySearch :visualization="visualization" @update="applyCompanyMatches" />
     <p>
       <RouterLink :to="{ name: 'visualize', params: { uploadId } }" class="govuk-link govuk-link--no-visited-state">
-        Cancel and return to visualization
+        Cancel and return to visualisation
       </RouterLink>
     </p>
   </div>
