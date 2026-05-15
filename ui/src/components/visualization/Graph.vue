@@ -5,7 +5,8 @@ import { VueFlow, Panel } from '@vue-flow/core'
 import Controls from '@/components/visualization/Controls.vue'
 import { useLayout } from '@/components/visualization/useLayout.ts'
 import EntityNode from '@/components/visualization/EntityNode.vue'
-import type { EntityGraph, GroupStructure, SupplementalConnection } from '@/db/models.ts'
+import type { EntityGraph, EntityType, GroupStructure, SupplementalConnection } from '@/db/models.ts'
+import { ENTITY_TYPES } from '@/db/models.ts'
 
 import type { CompanyMatches } from '@/api/models.ts'
 
@@ -133,6 +134,12 @@ const allHighlightedEdgeColors = computed(() => {
     map.set(edgeId, highlightColor.value)
   }
   return map
+})
+
+const entityTypesInGraph = computed<EntityType[]>(() => {
+  if (!graph.value) return []
+  const present = new Set(graph.value.nodes.map((n) => n.data?.entity?.type).filter(Boolean))
+  return ENTITY_TYPES.filter((t) => present.has(t))
 })
 
 // Available jurisdictions for the rules modal
@@ -614,6 +621,7 @@ function edgeHighlightProps(edgeId: string): Record<string, unknown> {
             :highlight-color="highlightColor"
             :highlight-parents="searchToggles.includes('highlightParents')"
             :highlight-rules="highlightRules"
+            :entity-types="entityTypesInGraph"
           />
         </Panel>
       </template>
