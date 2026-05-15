@@ -72,16 +72,23 @@ function extractMetadata(sheet: Worksheet): { groupName?: string; ultimateParent
   return { groupName, ultimateParentEntity }
 }
 
+function normalizeKey(key: string): string {
+  return key.trim().toLowerCase()
+}
+
 function toJson<Z extends z.ZodMiniObject, T = z.infer<Z>>(sheet: Worksheet, schema: Z): T[] {
   if (sheet.rowCount <= 1) return []
 
+  // Build a map from normalized key → canonical schema key for case-insensitive, trimmed matching
+  const schemaKeys = Object.keys(schema.shape)
+  const normalizedToCanonical = new Map<string, string>(schemaKeys.map((k) => [normalizeKey(k), k]))
+
   // find table header
   let headerRowNumber = 0
-  const allHeaders = new Set(Object.keys(schema.shape))
   sheet.eachRow((row, rowNumber) => {
     if (headerRowNumber > 0) return // already found
     const firstCell = row.getCell(1).value?.toString()?.trim()
-    if (firstCell && allHeaders.has(firstCell)) {
+    if (firstCell && normalizedToCanonical.has(normalizeKey(firstCell))) {
       headerRowNumber = rowNumber
     }
   })
@@ -93,7 +100,9 @@ function toJson<Z extends z.ZodMiniObject, T = z.infer<Z>>(sheet: Worksheet, sch
     if (rowNumber <= headerRowNumber) return // skip header row
     const rowData: Partial<T> = {}
     row.eachCell((cell, colNumber) => {
-      const header = headerRow[colNumber] as keyof T
+      const rawHeader = headerRow[colNumber]
+      // Map the raw header to the canonical schema key (case-insensitive, trimmed)
+      const header = (rawHeader ? (normalizedToCanonical.get(normalizeKey(rawHeader)) ?? rawHeader) : rawHeader) as keyof T
       rowData[header] = (cell.result ?? cell.value) as T[keyof T]
     })
 

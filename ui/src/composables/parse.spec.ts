@@ -16,6 +16,13 @@ describe('parse', () => {
     )
   })
 
+  it('should parse a spreadsheet with differing header cases and extra spaces', async () => {
+    const fileBuffer = await file('example2.xlsx')
+    const result = await parseCompanyOwnershipWorkbook(fileBuffer)
+    expect(result.entities.length).toBeGreaterThan(0)
+    expect(result.relationships.length).toBeGreaterThan(0)
+  })
+
   it('should parse the spreadsheet and return a CompanyGraph', async () => {
     const fileBuffer = await file('example.xlsx')
     const result = await parseCompanyOwnershipWorkbook(fileBuffer)
