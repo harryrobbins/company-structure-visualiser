@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { nextTick, watch, ref, computed, provide } from 'vue'
-import { StepEdge, useVueFlow, type BaseEdgeProps, BezierEdge, StraightEdge } from '@vue-flow/core'
+import { StepEdge, useVueFlow, type BaseEdgeProps, BezierEdge, StraightEdge, MarkerType } from '@vue-flow/core'
 import { VueFlow, Panel } from '@vue-flow/core'
 import Controls from '@/components/visualization/Controls.vue'
 import { useLayout } from '@/components/visualization/useLayout.ts'
@@ -185,6 +185,9 @@ function confirmConnection() {
       data: { connection },
       type: 'supplemental',
       style: { stroke: connection.color },
+      markerEnd: toggleControls.value.includes('showArrows')
+        ? { type: MarkerType.ArrowClosed, color: connection.color }
+        : undefined,
     },
   ]
   emit('add-connection', connection)
@@ -249,6 +252,7 @@ const toggleControls = ref<string[]>([
   'hide100PercentLabels',
   'showCountryFlags',
   'showUnconnectedHandles',
+  'showArrows',
 ])
 
 provide(
@@ -329,6 +333,9 @@ watch(
         data: { connection },
         type: 'supplemental' as const,
         style: { stroke: connection.color },
+        markerEnd: toggleControls.value.includes('showArrows')
+          ? { type: MarkerType.ArrowClosed, color: connection.color }
+          : undefined,
       }))
       graph.value.edges = [...currentNonSupplemental, ...newSupplemental]
     }
@@ -401,8 +408,7 @@ function entityGraph(
             ? ''
             : `${relationship.percentageOwnership.toFixed(0)}%`
           : '',
-        markerStart: 'circle',
-        markerEnd: 'circle',
+        markerEnd: toggleControls.value.includes('showArrows') ? { type: MarkerType.ArrowClosed, color: '#000000' } : undefined,
         data: { relationship },
         type: edgeType.value,
       })),
@@ -414,6 +420,9 @@ function entityGraph(
         data: { connection },
         type: 'supplemental',
         style: { stroke: connection.color },
+        markerEnd: toggleControls.value.includes('showArrows')
+          ? { type: MarkerType.ArrowClosed, color: connection.color }
+          : undefined,
       })),
     ],
   }
@@ -472,6 +481,12 @@ function edgeHighlightProps(edgeId: string): Record<string, unknown> {
         value="showUnconnectedHandles"
         id="show-unconnected-handles"
         label="Show unconnected handles"
+        label-class="whitespace-nowrap"
+      />
+      <GvCheckbox
+        value="showArrows"
+        id="show-arrows"
+        label="Show arrows"
         label-class="whitespace-nowrap"
       />
     </GvCheckboxes>
