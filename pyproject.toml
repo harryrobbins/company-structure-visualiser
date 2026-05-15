@@ -13,7 +13,7 @@ dependencies = [
     "jinja2>=3.1.6",
     "openai>=2.30.0",
     "pydantic-settings>=2.14.1",
-    "uvicorn>=0.47.0",
+    "uvicorn==0.46.0", # TODO pinned until available on-estate
     "pyarrow>=24.0.0",
 ]
 
